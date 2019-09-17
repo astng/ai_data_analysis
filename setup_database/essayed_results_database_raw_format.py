@@ -74,6 +74,7 @@ def main(user, password, db_name, table_name, mysql_db):
     client = MongoClient()
     db_mongo = client[db_name]
     table_mongo = db_mongo[table_name]
+    table_mongo_rejected = db_mongo[table_name + "_rejected"]
 
     mysql_cn = MySQLdb.connect(host='localhost',
                                port=3306,
@@ -83,7 +84,10 @@ def main(user, password, db_name, table_name, mysql_db):
 
     sql = 'select id_resultado, valor, id_ensayo, correlativo_muestra, id_protocolo from trib_resultado'
 
+    print("getting all data from mysql")
     data = pd.read_sql(sql, con=mysql_cn)
+    print("all data getted")
+
     data = data[pd.notnull(data['id_ensayo'])]
     data['id_ensayo'] = data['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
     group_by_correlative = data.groupby(by='correlativo_muestra')
@@ -92,9 +96,45 @@ def main(user, password, db_name, table_name, mysql_db):
         if count % 100 == 0:
             print("count ", count)
         new_row = group[1].pivot(index='correlativo_muestra', columns='id_ensayo', values='valor')
-        records = new_row.iloc[0].to_dict()
-        table_mongo.insert(records)
-        count += 1
+
+        try:
+            iso_code_serie = None
+            patch_test = None
+            if 'patch_test' in new_row.columns:
+                patch_test = new_row['patch_test']
+                new_row = new_row.drop(columns=["patch_test"])
+
+            if 'iso_code' in new_row.columns:
+                iso_code_serie = new_row["iso_code"]
+                new_row = new_row.drop(columns=["iso_code"])
+            new_row = new_row.applymap(lambda x: float(
+                x.replace(",", ".").replace("<", "").replace(">", "").replace("N/A", "nan").replace(" ", "").replace("..", ".")
+                    .replace("NASD", "0.0").replace("NAD", "0.0").replace("NAS", "nan").replace("NA", "nan")
+                    .replace("NSD.", "0.0").replace("NSD", "0.0").replace("/A", "nan").replace("%", "")
+                    .replace("2.480.", "2.480").replace("NH/A", "nan").replace("0nan", "nan").replace("N8A", "nan")
+                    .replace("N8A", "nan").replace("`", "0.0").replace("Mnan", "nan").replace("n/a", "nan")
+                    .replace("N/", "nan").replace("nsd", "0.0").replace("NDS", "0.0")
+                    .replace("SD", "0.0").replace("0.0.", "0.0").replace("N*A", "nan").replace("N|", "nan")
+                    .replace("NSA", "0.0").replace("nanD", "nan").replace("5.638.", "5.638").replace("1.3.", "1.3")
+                    .replace("nan0.0", "0.0").replace("NS", "0.0").replace("0.2.", "0.2").replace("nanS", "0.0")
+                    .replace("3.618.", "3.618").replace("15.374.", "15.374").replace("|", "").replace("15.25.", "15.25")
+                    .replace("/nan", "nan").replace("°C", "").replace("0.00.0", "0.0").replace("B0.0", "0.0")
+                    .replace("5.671.", "5.671").replace("53.34.", "53.34").replace("11.034.", "11.034")
+                    .replace("9.1.", "9.1").replace("0.0S", "0.0").replace("8nan", "0.0")
+            ))
+            if iso_code_serie is not None:
+                new_row["iso_code"] = iso_code_serie
+            if patch_test is not None:
+                new_row["patch_test"] = patch_test
+
+            records = new_row.iloc[0].to_dict()
+            table_mongo.insert(records)
+        except ValueError as e:
+            print("not possibly to upload value to mongo, value error: ", e)
+            records = new_row.iloc[0].to_dict()
+            table_mongo_rejected.insert(records)
+        finally:
+            count += 1
 
 
 if __name__ == '__main__':
