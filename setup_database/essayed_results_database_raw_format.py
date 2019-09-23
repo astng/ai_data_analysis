@@ -86,7 +86,7 @@ def main(user, password, db_name, table_name, mysql_db):
 
     print("getting all data from mysql")
     data = pd.read_sql(sql, con=mysql_cn)
-    print("all data getted")
+    print("all obtained data")
 
     data = data[pd.notnull(data['id_ensayo'])]
     data['id_ensayo'] = data['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
