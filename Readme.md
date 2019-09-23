@@ -1,6 +1,6 @@
 ## Setup
 
-Install all in module_ai repository first.
+Install all in __[module_ai](https://github.com/astng/module_ai)__ repository first.
 
 
 #### installing python packages trough pip
