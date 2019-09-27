@@ -1,0 +1,99 @@
+
+\documentclass{article}
+%\usepackage{color}
+%\usepackage[spanish]{babel}
+\input{classicthesis-config}
+
+\begin{document}
+%\frenchspacing
+%\raggedbottom
+\selectlanguage{spanish} % american ngerman
+%\renewcommand*{\bibname}{new name}
+%\setbibpreamble{}
+%\pagenumbering{roman}
+\pagestyle{plain}
+%********************************************************************
+% Frontmatter
+%*******************************************************
+%\title{iblah blah}
+%\author{Blah blah }
+%\date{August 2016}
+
+%\maketitle
+%\include{FrontBackmatter/DirtyTitlepage}
+\include{content/titlepage}
+%\include{FrontBackmatter/Titleback}
+%\cleardoublepage\include{FrontBackmatter/Dedication}
+%\cleardoublepage\include{FrontBackmatter/Foreword}
+%\cleardoublepage\include{FrontBackmatter/Abstract}
+%\cleardoublepage\include{FrontBackmatter/Publications}
+%\cleardoublepage\include{FrontBackmatter/Acknowledgments}
+%\cleardoublepage\include{FrontBackmatter/Contents}
+%********************************************************************
+% Mainmatter
+%*******************************************************
+%\cleardoublepage
+%\pagestyle{scrheadings}
+%\pagenumbering{arabic}
+%\setcounter{page}{90}
+% use \cleardoublepage here to avoid problems with pdfbookmark
+%\cleardoublepage
+%\part{Some Kind of Manual}\label{pt:manual}
+%\include{Chapters/Chapter01}
+%\cleardoublepage
+%\ctparttext{You can put some informational part preamble text here.
+%Illo principalmente su nos. Non message \emph{occidental} angloromanic
+%da. Debitas effortio simplificate sia se, auxiliar summarios da que,
+%se avantiate publicationes via. Pan in terra summarios, capital
+%interlingua se que. Al via multo esser specimen, campo responder que
+%da. Le usate medical addresses pro, europa origine sanctificate nos se.}
+%\part{The Showcase}\label{pt:showcase}
+%\include{Chapters/Chapter02}
+%\addtocontents{toc}{\protect\clearpage} % <--- just debug stuff, ignore
+%\include{Chapters/Chapter03}
+
+% ********************************************************************
+% Introduction
+% ********************************************************************
+%\newpage
+%\section{Introducción}
+
+%\input{content/subsection_00}
+
+
+% ********************************************************************
+% Data Analysis
+% ********************************************************************
+\newpage
+\section{Estado actual}
+
+\input{content/subsection_01}
+
+% ********************************************************************
+% IA Approach
+% ********************************************************************
+\newpage
+\section{Propuesta de Desarrollo de Inteligencia Artificial}
+
+\input{content/subsection_02}
+
+
+% ********************************************************************
+% Backmatter
+%*******************************************************
+%\newpage
+%\appendix
+%\section{Anexos}
+
+%\input{content/subsection_A01}
+%\renewcommand{\thechapter}{\alph{chapter}}
+%\cleardoublepage
+%\part{Appendix}
+%\include{Chapters/Chapter0A}
+%********************************************************************
+% Other Stuff in the Back
+%*******************************************************
+%\cleardoublepage\include{FrontBackmatter/Bibliography}
+%\cleardoublepage\include{FrontBackmatter/Declaration}
+%\cleardoublepage\include{FrontBackmatter/Colophon}
+\end{document}
