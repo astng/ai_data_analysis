@@ -7,7 +7,8 @@
 \begin{document}
 %\frenchspacing
 %\raggedbottom
-\selectlanguage{spanish} % american ngerman
+%\selectlanguage{spanish} % american ngerman
+%\usepackage[spanish]{babel}
 %\renewcommand*{\bibname}{new name}
 %\setbibpreamble{}
 %\pagenumbering{roman}
@@ -21,7 +22,40 @@
 
 %\maketitle
 %\include{FrontBackmatter/DirtyTitlepage}
-\include{content/titlepage}
+\begin{titlepage}
+    %\pdfbookmark[1]{\myTitle}{titlepage}
+    % if you want the titlepage to be centered, uncomment and fine-tune the line below (KOMA classes environment)
+%    \begin{addmargin}[-1cm]{-3cm}
+    \begin{center}
+        \large
+
+        \hfill
+
+        \vfill
+
+        \begingroup
+            \color{CTtitle}\spacedallcaps{\myTitle} \\ \bigskip
+        \endgroup
+
+        \spacedlowsmallcaps{\mySubtitle}
+
+        \vfill
+
+%        \includegraphics[width=6cm]{gfx/TFZsuperellipse_bw} \\ \medskip
+
+%        \mySubtitle \\ \medskip
+        %\myDegree \\
+        %\myDepartment \\
+        %\myFaculty \\
+        %\myUni \\ \bigskip
+
+        \myTime
+
+        \vfill
+
+    \end{center}
+%  \end{addmargin}
+\end{titlepage}
 %\include{FrontBackmatter/Titleback}
 %\cleardoublepage\include{FrontBackmatter/Dedication}
 %\cleardoublepage\include{FrontBackmatter/Foreword}
@@ -67,7 +101,156 @@
 \newpage
 \section{Estado actual}
 
-\input{content/subsection_01}
+\subsection{Árbol de decisión}
+
+El método original intenta abarcar una serie de restricciones predefinidas en un archivo Excel siguiendo un orden parcialmente respetado. Si algún resultado o conjunto de resultados viola alguna de las lógicas, se envía un mensaje y se modifican ciertos campos específicos en la vista del analista.
+
+Un problema con este método consiste en la violación de lógicas por parte de resultados superfluos o de poco interés, provocando que el analista destine tiempo a añadir una lógica “normal” personalizada para que dicha combinación se ignore en un futuro escenario. Así también, el proceso manual de incorporación de nuevas lógicas involucra un retardo de tiempo significativo ya que se debe hacer vía solicitud a un encargado externo.
+
+Cada lógica contiene evaluaciones basadas en umbrales como los mostrados en la Tabla 1.
+
+\begin{table}[!htbp]\centering
+\begin{tabular}{|c|c|c|c|}
+\hline 
+Componente & Normal & Advertencia & Alarma \\ 
+\hline 
+Al & < 20 & 20-40 & > 40 \\ 
+\hline 
+Cr & < 10 & 10-20 & > 20 \\ 
+\hline 
+Cu & < 50 & 50-100 & > 100 \\ 
+\hline 
+Fe & < 200 & 200-300 & > 300 \\ 
+\hline 
+Si & < 15 & 15-25 & > 25 \\ 
+\hline 
+\end{tabular} \label{tab:limites}
+\caption{Ejemplo de l\'ogicas en \'arbol de decisi\'on}
+\end{table}
+
+
+\subsection{Análisis Preliminar de la Estructura de los Datos}
+
+El análisis de la información entregada por medio de la base de datos es enfocado principalmente en la extracción de la información relacionada a los ensayos de tribología realizados por la empresa a equipos de diferentes clientes. Las variables de interés observadas a partir de las múltiples tablas presentes en la base de datos, y que se considera ser\'an parte relevante de la alimentaci\'on de datos para el sistema de aprendizaje automático son las siguientes :
+\newline \newline
+Datos propios de cada muestra-ensayo :
+
+\begin{itemize}
+	\item \textbf{id\_cliente} : Valor único correspondiente al cliente que solicita la muestra.
+	\item \textbf{id\_faena} : Valor único, propio de cada cliente, correspondiente a la faena desde donde proviene la muestra.
+	\item \textbf{id\_tipo\_equipo} : Valor correspondiente al tipo de equipo desde donde proviene la muestra.
+	\item \textbf{id\_tipo\_componente} : Valor correspondiente al tipo de componente desde donde proviene la muestra.
+	\item \textbf{id\_componente} : Valor único, propio de cada cliente y faena, correspondiente al componente desde donde proviene la muestra.
+	\item \textbf{correlativo\_muestra} : valor identificador de la muestra desde donde proviene el ensayo realizado.
+	\item \textbf{id\_ensayo} : Valor identificador del ensayo realizado.
+	\item \textbf{valor} : valor correspondiente al ensayo de la muestra analizada.
+	\item \textbf{id\_protocolo} : Valor del protocolo usado para analisis del valor del ensayo determinado por el cliente.
+	\item \textbf{m\_fecha\_muestreo\_annio} : Fecha de muestreo correspondiente al \textit{año}
+	\item \textbf{m\_fecha\_muestreo\_mes} : Fecha de muestreo correspondiente al \textit{mes}
+	\item \textbf{m\_fecha\_muestreo\_dia} : Fecha de muestreo correspondiente al \textit{día}
+	\item \textbf{m\_fecha\_ingreso\_annio} : Fecha de ingreso de la muestra correspondiente al \textit{año}
+	\item \textbf{m\_fecha\_ingreso\_mes} : Fecha de ingreso de la muestra correspondiente al \textit{mes}
+	\item \textbf{m\_fecha\_ingreso\_dia} : Fecha de ingreso de la muestra correspondiente al \textit{día}
+	
+\end{itemize}
+~\\
+La Tabla 2 muestra el origen desde que tabla de la base de datos se obtiene el campo respectivo.
+
+\begin{table}[!htbp]\centering
+\begin{tabular}{|c|c|}
+\hline 
+Dato & Tabla (en BD original en MySQL) \\ 
+\hline 
+$id\_cliente$ & $trib\_precalculo\_reporte$ \\ 
+\hline 
+$id\_faena$ & $trib\_precalculo\_reporte$ \\ 
+\hline 
+$id\_tipo\_equipo$ & $trib\_precalculo\_reporte$ \\ 
+\hline 
+$id\_tipo_componente$ & $trib\_precalculo\_reporte$ \\ 
+\hline 
+$id\_componente$ & $trib\_muestra$ \\ 
+\hline 
+$correlativo\_muestra$ & $trib\_muestra$ \\ 
+\hline 
+$id\_ensayo$ & $trib\_resultado$ \\ 
+\hline 
+$valor$ & $trib\_resultado$ \\ 
+\hline 
+$id\_protocolo$ & $trib\_resultado$ \\ 
+\hline 
+\end{tabular} 
+\caption{Relación entre datos y su origen en BD}
+\end{table}
+
+Datos propios de cada ensayo, obtenidos de la tabla \textit{trib\_ensayo} :
+
+\begin{itemize}
+	\item \textbf{id\_ensayo} : Identificador propio del ensayo realizado.
+	\item \textbf{cp\_3\_tipo\_protocolo} : Tipo de ensayo al que corresponde (metal o lubricante).
+	\item \textbf{nombre} : Nombre del ensayo.
+\end{itemize}
+~\\
+Datos propios de cada protocolo, obtenidos de la tabla \textit{trib\_protocolo} :
+
+\begin{itemize}
+	\item \textbf{id\_protocolo} : Identificador propio del protocolo realizado.
+	\item \textbf{nombre} : Nombre del protocolo.
+\end{itemize}
+~\\
+Datos propios de cada ensayo con su protocolo determinado según el cliente, obtenidos de la tabla \textit{trib\_ensayo\_protocolo} :
+
+\begin{itemize}
+	\item \textbf{id\_protocolo} : Identificador del protocolo.
+	\item \textbf{id\_ensayo} : Identificador del ensayo.
+	\item \textbf{lim\_inf\_marginal} : Límite inferior marginal del ensayo correspondiente al protocolo.
+	\item \textbf{lim\_sup\_marginal} : Límite superior marginal del ensayo correspondiente al protocolo.
+	\item \textbf{lim\_inf\_condenatorio} : Límite inferior condenatorio del ensayo correspondiente al protocolo.
+	\item \textbf{lim\_sup\_condenatorio} : Límite superior condenatorio del ensayo correspondiente al protocolo.
+\end{itemize}
+
+\subsection{Segmentación de Datos}
+
+Con el objetivo de analizar los datos y relacionar resultados de ensayos se comienza segmentando los datos que son posibles de correlacionar.
+
+La primera variable identificada para la segmentación de los resultados de los ensayos es \textit{id\_faena}, debido a que los valores obtenidos para cada ensayo dependen directamente de las condiciones de trabajo propias de cada faena. Debido a que la variable \textit{id\_faena} es única (no compartida entre clientes), se identifica que el valor de la variable \textit{id\_cliente} se vuelve solamente informativa y no relevante para la toma de decisiones en base a los datos.
+
+Posterior a la primera segmentación es posible segmentar nuevamente los resultados por otras tres variables :.
+
+\begin{itemize}
+	\item ``id\_tipo\_equipo''
+	\item ``id\_tipo\_componente''
+	\item ``id\_componente''
+\end{itemize}
+
+Al hacer un primer an\'alisis estad\'istico usando solo los datos provistos, se identifican los tipos de ensayo que presentan una mayor correlaci\'on entre s\'i, como se muestra en la Tabla \ref{tab:corr} donde se listan los 5 pares de correlaci\'on m\'as altos, y en la Figura \ref{fig:heatmap} donde se ilustra un mapa de calor donde la intensidad del color se asocia con la cercan\'ia a 1 y es directamente proporcional al grado de correlaci\'on, valor que naturalmente se observa m\'aximo en la diagonal.
+
+\begin{table}[!htbp]
+\begin{tabular}{|c|c|c|}
+\hline 
+Ensayo 1 & Ensayo 2 & Correlación (\%) \\ 
+\hline 
+pH & vanadium & 99.9965 \\ 
+\hline 
+chromium & pH & 99.9964 \\ 
+\hline 
+$acid\_total\_number$ & $basic\_total\_number$ & 98.8107 \\ 
+\hline 
+antifreeze & vanadium & 97.9971 \\ 
+\hline 
+$acid\_total\_number$ & $dilution\_by\_fuel$ & 97.9966 \\ 
+\hline 
+\end{tabular}
+\caption{Mayor correlaci\'on entre ensayos}
+\label{tab:corr} 
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figs/heatmap.pdf}
+\caption{Mapa de calor con correlaci\'on de Pearson}
+\label{fig:heatmap}
+\end{figure}
 
 % ********************************************************************
 % IA Approach
@@ -75,7 +258,49 @@
 \newpage
 \section{Propuesta de Desarrollo de Inteligencia Artificial}
 
-\input{content/subsection_02}
+Con el propósito de entregar un resultado más completo al cliente que solicita el análisis de una muestra, es que se propone la incorporación de mecanismos de predicción de eventos futuros a partir del análisis de resultados acumulados de muestras históricas. 
+
+Luego de observar los datos disponibles presentes en la base de datos de tribología entregados, es que se generan las siguientes propuestas de posibles enfoques en los que se puede centrar el problema de aprendizaje automático.
+
+\subsection{Predicción de eventos y estados futuros de un componente}
+
+Por medio del uso de los resultados históricos acumulados de las muestras de un componente analizado es posible estimar, a partir de una nueva muestra, posibles eventos y estados futuros de dicho componente, permitiendo enriquecer el análisis de la nueva muestra con mecanismos de corrección temprana de fallos o estados no deseados. 
+
+El resultado de este análisis adicional de datos incorporará los siguientes campos:
+
+\begin{itemize}
+	\item \textbf{alert\_level\_pred} : Predicción del nivel de alerta de una muestra futura (``Normal'', ``Warning'', ``Alert'')
+	\item \textbf{id\_state\_pred} : Comentario (o descripción del ``estado'' futuro)
+	\item \textbf{id\_suggestion\_pred} : Acción (o ``sugerencia'' sobre qué acción tomar para evitar dicho ``estado'' futuro)
+\end{itemize}
+
+La información adicional entregada al cliente permitirá evitar futuros problemas a presentarse en sus equipos, anticipándose mediante comentarios de corrección preventiva en base a un mecanismo automático que apoye la toma de decisiones.
+
+Con el objetivo de validar experimentalmente la calidad de los datos para este tipo de tarea, se prueba un clasificador tradicional mediante el algoritmo KNN (K-Nearest Neighbors). El objetivo planteado es predecir el nivel de alerta en un siguiente instante de tiempo, dada la informaci\'on provista como entrada de la caracterizaci\'on completa de ensayos realizados y su nivel de alerta correspondiente en instantes anteriores.
+
+Se destaca que no se espera un desempe\~no cercano al \'optimo para este algoritmo, por razones como:
+\begin{itemize}
+\item Existen alternativas que han probado tener mejor desempe\~no en tareas de clasificaci\'on, como las que se consideran como propuesta (LSTM por ejemplo, Long Short-Term Memory neural networks).
+\item Al haber cambios no informados en componentes de las muestras ensayadas, es posible que se produzca dualidad en la determinaci\'on del estado de alerta.
+\item Dado que cada cliente tiene protocolos distintos, se espera que este clasificador KNN no sea capaz de identificar la dualidad en nivel de alerta que podría tener para muestras similares.
+\end{itemize}
+
+
+\subsubsection{Estimación de modificaciones no informadas de equipos o componentes}
+
+Un problema que se observa en el proceso actual es la dificultad del análisis de los resultados de las muestras históricas de un componente, debido a la no entrega completa de información por parte del cliente que solicita el análisis de una muestra.
+
+En la mayoría de los casos, no es compartida la información relacionada con cambios en el estado físico de los equipos, como lo son cambios de componentes y relleno o renovación de lubricantes, afectando la predicción de la propuesta anterior y el análisis de la nueva muestra.
+
+De presentarse una estimación positiva en la modificación del estado físico de un componente, se incorporará en la información incompleta entregada por el cliente facilitando el análisis de la nueva muestra y permitirá predecir correctamente posibles eventos y estados futuros.
+\\
+El enriquecimiento de lo resultados para las muestras, producto de las propuestas que han sido expuestas anteriormente, únicamente conllevan un análisis computacional con un costo adicional asociado mínimo pero de gran valor agregado al servicio ofrecido al cliente. El costo monetario adicional asociado dependerá de los requerimientos de hardware computacional involucrados en la predicción. 
+
+Si los requerimientos para la predicción son posibles de solventar en máquinas computacionales locales, entonces no existirá costo adicional alguno. De no ser así, el costo del análisis se ve aumentado por los costos asociados al servicio AWS (Amazon Web Services) con características apropiadas para la predicción según el volumen de datos históricos en procesamiento.
+
+\subsection{Observaciones}
+Todo el código generado durante esta etapa se puede revisar en Github: \url{https://github.com/astng/module_ai} . Al momento de la fecha de entrega de este documento, se ha replicado el mecanismo de toma de decisiones original en forma de restful API como servicio HTTP, cuya documentaci\'on de uso est\'a disponible en una Wiki en \url{https://github.com/astng/module_ai/wiki/Module-AI-API-Documentation}
+
 
 
 % ********************************************************************
