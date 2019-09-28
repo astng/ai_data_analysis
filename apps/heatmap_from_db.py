@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from pymongo import MongoClient
-
+import numpy as np
+pd.set_option('display.max_columns', 50)
 
 def main(database: str, table: str):
     client = MongoClient()
@@ -13,11 +14,12 @@ def main(database: str, table: str):
 
     # to pandas
     all_data = pd.DataFrame(query_fetch)
-
-    corr = all_data.corr()
-    print(corr)
-    ax = sns.heatmap(corr, vmin=-1, vmax=1, center=0, cmap=sns.diverging_palette(20, 220, n=200), square=True)
+    corr_matrix = all_data.corr().abs()
+    ordered_pairs = (corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k = 1).astype(np.bool)).stack().sort_values(ascending=False))
+    print(ordered_pairs[:5])
+    ax = sns.heatmap(corr_matrix, vmax=1, center=0, cmap=sns.diverging_palette(20, 220, n=200), square=True)
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, horizontalalignment='right')
+    plt.savefig('heatmap.pdf')
     plt.show()
 
 if __name__ == '__main__':
