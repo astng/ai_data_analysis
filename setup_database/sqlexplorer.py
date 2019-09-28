@@ -81,6 +81,8 @@ def main(user, password, mysql_db):
 
     print(data)
     print("columnas:",data.keys())
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-u", "--user", type=str, help="mysql user", required=True)

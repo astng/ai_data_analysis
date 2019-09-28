@@ -1,10 +1,6 @@
-import json
-import random
-
 import pandas as pd
 import MySQLdb
 import argparse
-import numpy as np
 from datetime import datetime as dt
 from pymongo import MongoClient
 
@@ -70,7 +66,6 @@ STNG_ID_2_CHARACTERIZATION = {
 
 
 def main(user, password, db_name, table_name, mysql_db):
-    current_time = dt.now()
     client = MongoClient()
     db_mongo = client[db_name]
     table_mongo = db_mongo[table_name]
@@ -82,15 +77,32 @@ def main(user, password, db_name, table_name, mysql_db):
                                passwd=password,
                                db=mysql_db)
 
-    sql = 'select id_resultado, valor, id_ensayo, correlativo_muestra, id_protocolo from trib_resultado'
+    sql_resultado = 'select id_resultado, valor, id_ensayo, correlativo_muestra,' \
+                    ' id_protocolo from trib_resultado'
+    sql_muestra = 'select correlativo_muestra, id_componente from trib_muestra'
+    sql_componente = 'select id_componente, id_equipo from trib_componente'
+    sql_equipo = 'select id_equipo, id_faena from trib_equipo'
+    sql_faena = 'select id_faena, id_cliente from trib_faena'
+    sql_cliente = 'select id_cliente, nombre_abreviado from trib_cliente'
 
     print("getting all data from mysql")
-    data = pd.read_sql(sql, con=mysql_cn)
+    data_resultado = pd.read_sql(sql_resultado, con=mysql_cn)
+    data_muestra = pd.read_sql(sql_muestra, con=mysql_cn)
+    data_componente = pd.read_sql(sql_componente, con=mysql_cn)
+    data_equipo = pd.read_sql(sql_equipo, con=mysql_cn)
+    data_faena = pd.read_sql(sql_faena, con=mysql_cn)
+    data_cliente = pd.read_sql(sql_cliente, con=mysql_cn)
+    data_cliente['nombre_abreviado'] = data_cliente['nombre_abreviado'].map(lambda x: x.replace(' ', '_'))
     print("finished reading data")
 
-    data = data[pd.notnull(data['id_ensayo'])]
-    data['id_ensayo'] = data['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
-    group_by_correlative = data.groupby(by='correlativo_muestra')
+    dict_muestra = pd.Series(data_muestra.id_componente.values, index=data_muestra.correlativo_muestra).to_dict()
+    dict_componente = pd.Series(data_componente.id_equipo.values, index=data_componente.id_componente).to_dict()
+    dict_equipo = pd.Series(data_equipo.id_faena.values, index=data_equipo.id_equipo).to_dict()
+    dict_faena = pd.Series(data_faena.id_cliente.values, index=data_faena.id_faena).to_dict()
+    dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
+    data_resultado = data_resultado.loc[data_resultado['id_ensayo'].notna()]
+    data_resultado['id_ensayo'] = data_resultado['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
+    group_by_correlative = data_resultado.groupby(by='correlativo_muestra')
     count = 0
     for group in group_by_correlative:
         if count % 100 == 0:
@@ -108,7 +120,8 @@ def main(user, password, db_name, table_name, mysql_db):
                 iso_code_serie = new_row["iso_code"]
                 new_row = new_row.drop(columns=["iso_code"])
             new_row = new_row.applymap(lambda x: float(
-                x.replace(",", ".").replace("<", "").replace(">", "").replace("N/A", "nan").replace(" ", "").replace("..", ".")
+                x.replace(",", ".").replace("<", "").replace(">", "").replace("N/A", "nan").replace(" ", "").replace(
+                    "..", ".")
                     .replace("NASD", "0.0").replace("NAD", "0.0").replace("NAS", "nan").replace("NA", "nan")
                     .replace("NSD.", "0.0").replace("NSD", "0.0").replace("/A", "nan").replace("%", "")
                     .replace("2.480.", "2.480").replace("NH/A", "nan").replace("0nan", "nan").replace("N8A", "nan")
@@ -128,6 +141,10 @@ def main(user, password, db_name, table_name, mysql_db):
                 new_row["patch_test"] = patch_test
 
             records = new_row.iloc[0].to_dict()
+            records.update({'correlativo_muestra': group[0]})
+            id_component = dict_componente[dict_muestra[group[0]]]
+            records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]], 'component': id_component})
+            print(records)
             table_mongo.insert(records)
         except ValueError as e:
             print("not possibly to upload value to mongo, value error: ", e)
