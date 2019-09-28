@@ -142,6 +142,8 @@ def main(user, password, db_name, table_name, mysql_db):
 
             records = new_row.iloc[0].to_dict()
             records.update({'correlativo_muestra': group[0]})
+            if dict_muestra.get(group[0]) is None or dict_componente.get(dict_muestra[group[0]]) is None:
+                continue
             id_component = dict_componente[dict_muestra[group[0]]]
             records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]], 'component': id_component})
             print(records)
