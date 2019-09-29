@@ -149,6 +149,8 @@ def main(user, password, db_name, table_name, mysql_db):
                 records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]], 'component': id_component})
                 print(records)
                 table_mongo.insert(records)
+            except Exception as e:
+                pass
             finally:
                 pass
 
