@@ -19,7 +19,7 @@ def main(file_path: str, db: str, table: str):
     for group in grouped_by_component:
         amount_data_per_component.append(len(group[1]))
 
-    pd.Series(amount_data_per_component).hist()
+    pd.Series(amount_data_per_component).hist(bins=25)
     plt.savefig(file_path)
 
 
