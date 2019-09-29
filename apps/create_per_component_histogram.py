@@ -12,7 +12,7 @@ def main(file_path: str, db: str, table: str):
     query_fetch = table_mongo.find()
 
     all_data = pd.DataFrame(query_fetch)
-
+    
     grouped_by_component = all_data.groupby(by='component')
     amount_data_per_component = list()
 
@@ -20,6 +20,9 @@ def main(file_path: str, db: str, table: str):
         amount_data_per_component.append(len(group[1]))
 
     pd.Series(amount_data_per_component).hist(bins=25)
+    plt.title('Histograma de muestras por componente')
+    plt.xlabel("Cantidad de muestras")
+    plt.ylabel("Componentes")
     plt.savefig(file_path)
 
 
