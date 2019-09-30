@@ -215,7 +215,7 @@ Con el objetivo de analizar los datos y relacionar resultados de ensayos se comi
 
 La primera variable identificada para la segmentación de los resultados de los ensayos es \textit{id\_faena}, debido a que los valores obtenidos para cada ensayo dependen directamente de las condiciones de trabajo propias de cada faena. Debido a que la variable \textit{id\_faena} es única (no compartida entre clientes), se identifica que el valor de la variable \textit{id\_cliente} se vuelve solamente informativa y no relevante para la toma de decisiones en base a los datos.
 
-Posterior a la primera segmentación es posible segmentar nuevamente los resultados por otras tres variables :.
+Posterior a la primera segmentación es posible segmentar nuevamente los resultados por otras tres variables :
 
 \begin{itemize}
 	\item ``id\_tipo\_equipo''
@@ -241,15 +241,49 @@ antifreeze & vanadium & 97.9971 \\
 $acid\_total\_number$ & $dilution\_by\_fuel$ & 97.9966 \\ 
 \hline 
 \end{tabular}
-\caption{Mayor correlaci\'on entre ensayos}
+\caption{Mayor correlaci\'on entre ensayos para todos los clientes y componentes}
 \label{tab:corr} 
 \end{table}
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\textwidth]{figs/heatmap.pdf}
+\includegraphics[width=.85\textwidth]{figs/heatmap.pdf}
 \caption{Mapa de calor con correlaci\'on de Pearson}
 \label{fig:heatmap}
+\end{figure}
+
+Se destaca que si bien se observa una alta correlaci\'on entre distintos tipos de ensayos como los individualizados en la Tabla \ref{tab:corr}, esta relaci\'on no es necesariamente la misma para cada cliente, cuyo an\'alisis se compara para algunos clientes en las Figuras \ref{fig:perclient1} y \ref{fig:perclient2}.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figs/perclient1.pdf}
+\vspace*{-30mm}
+\caption{Correlaci\'on entre ensayos separados por cliente}
+\label{fig:perclient1}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{figs/perclient2.pdf}
+\vspace*{-30mm}
+\caption{Correlaci\'on entre ensayos separados por cliente}
+\label{fig:perclient2}
+\end{figure}
+
+En relaci\'on a la cantidad de datos disponibles, como se ilustra en el Histograma de la Figura \ref{fig:histogram}, un poco m\'as de 2500 (de un total de 3350) componentes presentes (como p.ej. U.Hidr\'aulica o Reductor) en la base de datos provista cuenta con menos de 200 datos disponibles. Adem\'as, considerando que para determinar el nivel de alerta asociado a una determinada muestra se aplican u omiten distintos ensayos, la cantidad de datos disponible para predecir el nivel de alerta en instantes futuros se prevee bajo la m\'inima. Sin embargo, es posible plantear el desaf\'io de aprendizaje para predecir el valor de ensayos aplicados a una muestra para un instante futuro, planificando comenzar con los resultados de ensayo asociado al fierro, cuyos registros hist\'oricos para los componentes almacenados se muestra en la Figura \ref{fig:fierro}.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=.75\textwidth]{figs/data_per_component_hist.pdf}
+\caption{Cantidad de datos para distintos componentes}
+\label{fig:histogram}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=.75\textwidth]{figs/iron.pdf}
+\caption{Evoluci\'on del fierro para ciertos componentes}
+\label{fig:fierro}
 \end{figure}
 
 % ********************************************************************
@@ -262,28 +296,11 @@ Con el propósito de entregar un resultado más completo al cliente que solicita
 
 Luego de observar los datos disponibles presentes en la base de datos de tribología entregados, es que se generan las siguientes propuestas de posibles enfoques en los que se puede centrar el problema de aprendizaje automático.
 
-\subsection{Predicción de eventos y estados futuros de un componente}
+\subsection{Predicción de estados futuros para los an\'alisis de un componente}
 
-Por medio del uso de los resultados históricos acumulados de las muestras de un componente analizado es posible estimar, a partir de una nueva muestra, posibles eventos y estados futuros de dicho componente, permitiendo enriquecer el análisis de la nueva muestra con mecanismos de corrección temprana de fallos o estados no deseados. 
+Por medio del uso de los resultados históricos acumulados de las muestras de un componente analizado es posible estimar, a partir de una nueva muestra, posibles eventos y estados futuros de cierto an\'alisis a considerar para la posterior determinaci\'on de nivel de alerta (donde dicha \'ultima etapa no se contemplar\'a en el presente desarrollo de inteligencia artificial).
 
-El resultado de este análisis adicional de datos incorporará los siguientes campos:
-
-\begin{itemize}
-	\item \textbf{alert\_level\_pred} : Predicción del nivel de alerta de una muestra futura (``Normal'', ``Warning'', ``Alert'')
-	\item \textbf{id\_state\_pred} : Comentario (o descripción del ``estado'' futuro)
-	\item \textbf{id\_suggestion\_pred} : Acción (o ``sugerencia'' sobre qué acción tomar para evitar dicho ``estado'' futuro)
-\end{itemize}
-
-La información adicional entregada al cliente permitirá evitar futuros problemas a presentarse en sus equipos, anticipándose mediante comentarios de corrección preventiva en base a un mecanismo automático que apoye la toma de decisiones.
-
-Con el objetivo de validar experimentalmente la calidad de los datos para este tipo de tarea, se prueba un clasificador tradicional mediante el algoritmo KNN (K-Nearest Neighbors). El objetivo planteado es predecir el nivel de alerta en un siguiente instante de tiempo, dada la informaci\'on provista como entrada de la caracterizaci\'on completa de ensayos realizados y su nivel de alerta correspondiente en instantes anteriores.
-
-Se destaca que no se espera un desempe\~no cercano al \'optimo para este algoritmo, por razones como:
-\begin{itemize}
-\item Existen alternativas que han probado tener mejor desempe\~no en tareas de clasificaci\'on, como las que se consideran como propuesta (LSTM por ejemplo, Long Short-Term Memory neural networks).
-\item Al haber cambios no informados en componentes de las muestras ensayadas, es posible que se produzca dualidad en la determinaci\'on del estado de alerta.
-\item Dado que cada cliente tiene protocolos distintos, se espera que este clasificador KNN no sea capaz de identificar la dualidad en nivel de alerta que podría tener para muestras similares.
-\end{itemize}
+As\'i, por ejemplo considerando el componente \textit{Reductor} de la Figura \ref{fig:fierro}, a partir de las muestras disponibles ser\'ia posible predecir el resultado futuro de ese mismo tipo de ensayo para ese componente en el siguiente instante en que se recepcione una muestra, indicando si su valor seguir\'a estable como en las \'ultimas analizadas, o tendr\'a un valor alto como en las primeras muestras. Esto permitir\'ia evitar futuros problemas en los equipos, pudiendo anticipar medidas preventivas.
 
 
 \subsubsection{Estimación de modificaciones no informadas de equipos o componentes}
@@ -294,12 +311,12 @@ En la mayoría de los casos, no es compartida la información relacionada con ca
 
 De presentarse una estimación positiva en la modificación del estado físico de un componente, se incorporará en la información incompleta entregada por el cliente facilitando el análisis de la nueva muestra y permitirá predecir correctamente posibles eventos y estados futuros.
 \\
-El enriquecimiento de lo resultados para las muestras, producto de las propuestas que han sido expuestas anteriormente, únicamente conllevan un análisis computacional con un costo adicional asociado mínimo pero de gran valor agregado al servicio ofrecido al cliente. El costo monetario adicional asociado dependerá de los requerimientos de hardware computacional involucrados en la predicción. 
+El enriquecimiento de los resultados para las muestras, producto de las propuestas que han sido expuestas anteriormente, únicamente conllevan un análisis computacional con un costo adicional asociado mínimo pero de gran valor agregado al servicio ofrecido al cliente. El costo monetario adicional asociado dependerá de los requerimientos de hardware computacional involucrados en la predicción. 
 
 Si los requerimientos para la predicción son posibles de solventar en máquinas computacionales locales, entonces no existirá costo adicional alguno. De no ser así, el costo del análisis se ve aumentado por los costos asociados al servicio AWS (Amazon Web Services) con características apropiadas para la predicción según el volumen de datos históricos en procesamiento.
 
 \subsection{Observaciones}
-Todo el código generado durante esta etapa se puede revisar en Github: \url{https://github.com/astng/module_ai} . Al momento de la fecha de entrega de este documento, se ha replicado el mecanismo de toma de decisiones original en forma de restful API como servicio HTTP, cuya documentaci\'on de uso est\'a disponible en una Wiki en \url{https://github.com/astng/module_ai/wiki/Module-AI-API-Documentation}
+Todo el código generado durante esta etapa se puede revisar en Github: \url{https://github.com/astng/module_ai} y en \url{https://github.com/astng/ai_data_analysis}. Al momento de la fecha de entrega de este documento, se ha replicado el mecanismo de toma de decisiones original en forma de restful API como servicio HTTP, cuya documentaci\'on de uso est\'a disponible en una Wiki en \url{https://github.com/astng/module_ai/wiki/Module-AI-API-Documentation}
 
 
 
