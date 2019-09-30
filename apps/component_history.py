@@ -12,16 +12,18 @@ def main(database: str, table: str):
     query_fetch = table_mongo.find()
 
     all_data = pd.DataFrame(query_fetch)
-    component = 1784
-    client = set(all_data[all_data['component'] == component]['client'])
-    cols = all_data.columns.difference(['client', 'component'])
-    df = all_data[all_data['component'] == component][cols]
-    ensayo = 0 # luego separare por ensayos AFQ y ensayos de metal
-    df = df[cols[ensayo]].dropna()
-    plt.plot(df)
-    plt.title(client)
-    plt.legend([cols[ensayo]])
+
+    components = {50: 'U.Hidraulica', 54: 'Reductor'}
+    for idc in components.keys():
+        cols = all_data.columns.difference(['component'])
+        comp_results = all_data[all_data['component'] == idc][cols]
+        comp_results = comp_results['iron'].dropna()
+        plt.plot(comp_results)
+        plt.legend(list(components.values()))
+        plt.xlabel("muestras")
+    plt.title('Analisis del nivel de fierro')
     plt.grid(True)
+    plt.savefig("../Informe2/figs/iron.pdf")
     plt.show()
 
 
