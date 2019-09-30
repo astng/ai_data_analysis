@@ -1,5 +1,7 @@
 import argparse
+import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 from pymongo import MongoClient
 
 
@@ -10,29 +12,24 @@ def main(database: str, table: str):
     query_fetch = table_mongo.find()
 
     all_data = pd.DataFrame(query_fetch)
-    nclients = 5
     clients = {}
-    correlations = []
+    some_clients = ['Minera_Escondida_Ltda', 'Minera_Esperanza', 'Komatsu_Chile', 'Minera_Antucoya']
 
-    for client in set(all_data['client']):
-        clients[client] = all_data[all_data['client'] == client][all_data.columns.difference(['client', 'component'])]
+    grouped_by_client = all_data.groupby(by='client')
+    fig = plt.figure()
+    cnt = 1
+    for group in grouped_by_client:
+        if group[0] in some_clients:
+            cols = all_data.columns.difference(['client', 'component'])
+            clients[group[0]] = group[1][cols].corr().abs()
+            sns.set(font_scale=0.6)
+            ax = fig.add_subplot(int("22"+str(cnt)))
+            ax.title.set_text(group[0])
+            sns.heatmap(clients[group[0]], vmax=1, center=0, cmap=sns.diverging_palette(20, 220, n=200), square=True)
+            cnt += 1
+    #plt.savefig('../Informe2/figs/perclient2.pdf')
+    plt.show()
 
-    for client in list(clients.keys())[:nclients]:
-        for client2 in list(clients.keys())[:nclients]:
-            if client != client2:
-                df1 = all_data[all_data['client'] == client][all_data.columns.difference(['client', 'component'])].dropna()
-                df2 = all_data[all_data['client'] == client2][all_data.columns.difference(['client', 'component'])].dropna()
-                corr = df1.corrwith(df2)
-                correlations.append((corr,client,client2))
-                #print(correlations[-1])
-            else:
-                correlations.append((1,client,client))
-    print(correlations)
-    #correlations.sort()
-    #correlations.reverse()
-    #for trio in correlations:
-    #    if trio[1] != trio[2]:
-    #        print(trio)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
