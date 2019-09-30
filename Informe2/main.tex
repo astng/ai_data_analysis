@@ -131,20 +131,20 @@ Si & < 15 & 15-25 & > 25 \\
 
 \subsection{Análisis Preliminar de la Estructura de los Datos}
 
-El análisis de la información entregada por medio de la base de datos es enfocado principalmente en la extracción de la información relacionada a los ensayos de tribología realizados por la empresa a equipos de diferentes clientes. Las variables de interés observadas a partir de las múltiples tablas presentes en la base de datos, y que se considera ser\'an parte relevante de la alimentaci\'on de datos para el sistema de aprendizaje automático son las siguientes :
+El análisis de la información entregada por medio de la base de datos es enfocado principalmente en la extracción de la información relacionada a los resultados de los ensayos de tribología realizados por la empresa a componentes de diferentes clientes. Las variables de interés observadas a partir de las múltiples tablas presentes en la base de datos, y que se considera ser\'an parte relevante de la alimentaci\'on de datos para el sistema de aprendizaje automático son las siguientes :
 \newline \newline
-Datos propios de cada muestra-ensayo :
+Datos propios de cada muestra-resultado :
 
 \begin{itemize}
-	\item \textbf{id\_cliente} : Valor único correspondiente al cliente que solicita la muestra.
-	\item \textbf{id\_faena} : Valor único, propio de cada cliente, correspondiente a la faena desde donde proviene la muestra.
-	\item \textbf{id\_tipo\_equipo} : Valor correspondiente al tipo de equipo desde donde proviene la muestra.
-	\item \textbf{id\_tipo\_componente} : Valor correspondiente al tipo de componente desde donde proviene la muestra.
-	\item \textbf{id\_componente} : Valor único, propio de cada cliente y faena, correspondiente al componente desde donde proviene la muestra.
-	\item \textbf{correlativo\_muestra} : valor identificador de la muestra desde donde proviene el ensayo realizado.
+	\item \textbf{id\_cliente} : Identificador único correspondiente al cliente que solicita el an\'alisis de la muestra.
+	\item \textbf{id\_faena} : Identificador único, propio de cada cliente, correspondiente a la faena desde donde proviene la muestra.
+	\item \textbf{id\_tipo\_equipo} : Identificador correspondiente al tipo de equipo desde donde proviene el componente.
+	\item \textbf{id\_tipo\_componente} : Identificador correspondiente al tipo de componente desde donde proviene la muestra.
+	\item \textbf{id\_componente} : Identificador único, propio de cada cliente y faena, correspondiente al componente desde donde proviene la muestra.
+	\item \textbf{correlativo\_muestra} : Identificador \'unico de la muestra.
 	\item \textbf{id\_ensayo} : Valor identificador del ensayo realizado.
-	\item \textbf{valor} : valor correspondiente al ensayo de la muestra analizada.
-	\item \textbf{id\_protocolo} : Valor del protocolo usado para analisis del valor del ensayo determinado por el cliente.
+	\item \textbf{valor} : Valor correspondiente al resultado del ensayo de la muestra analizada.
+	\item \textbf{id\_protocolo} : Identificador del protocolo usado para el an\'alisis de los resultados de los ensayos.
 	\item \textbf{m\_fecha\_muestreo\_annio} : Fecha de muestreo correspondiente al \textit{año}
 	\item \textbf{m\_fecha\_muestreo\_mes} : Fecha de muestreo correspondiente al \textit{mes}
 	\item \textbf{m\_fecha\_muestreo\_dia} : Fecha de muestreo correspondiente al \textit{día}
@@ -194,7 +194,7 @@ Datos propios de cada ensayo, obtenidos de la tabla \textit{trib\_ensayo} :
 Datos propios de cada protocolo, obtenidos de la tabla \textit{trib\_protocolo} :
 
 \begin{itemize}
-	\item \textbf{id\_protocolo} : Identificador propio del protocolo realizado.
+	\item \textbf{id\_protocolo} : Identificador propio del protocolo utilizado.
 	\item \textbf{nombre} : Nombre del protocolo.
 \end{itemize}
 ~\\
