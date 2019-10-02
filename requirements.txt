@@ -7,4 +7,4 @@ mysqlclient
 xlrd
 numpy
 tables
-tf-nightly-gpu
+tensorflow-gpu
