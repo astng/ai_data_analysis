@@ -15,6 +15,7 @@ def decode_arrays_tf(tf_encoded):
 
 def main(dataset_file: str):
     data_set_raw = pd.read_hdf(dataset_file, key='df')
+    # TODO: deal with nan with not by dropping.
     dataset_cleaned_pandas = data_set_raw.map(lambda x: x[~np.isnan(x)].astype(np.float32).tobytes())
     dataset_tf = tf.data.Dataset.from_tensor_slices(dataset_cleaned_pandas)
     dataset_tf = dataset_tf.map(decode_arrays_tf)
