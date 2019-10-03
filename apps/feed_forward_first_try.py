@@ -8,12 +8,12 @@ data_len = 10
 
 def clean_data_used(data):
     global data_len
-    if len(data) < 10:
+    if len(data) < data_len:
         return np.nan
     else:
-        if pd.isna(data[0:5]).any():
+        if pd.isna(data[:data_len]).any():
             return np.nan
-        return data[0:10]
+        return data[:data_len]
 
 
 def decode_arrays(encoded_array):
@@ -40,6 +40,6 @@ def main(dataset_file: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_file', required=True, type=str)
+    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset.h5")
     cmd_args = parser.parse_args()
     main(cmd_args.dataset_file)
