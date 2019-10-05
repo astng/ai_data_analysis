@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pymongo import MongoClient
 import seaborn as sns
+from webcolors import rgb_to_name
 
 def main(database: str, table: str, outfolder: str):
     client = MongoClient()
@@ -13,15 +14,21 @@ def main(database: str, table: str, outfolder: str):
     clients = ['Dercomaq', 'Power_Train_Technologies', 'ESO', 'Luval', 'Komatsu_Chile']
     all_data = pd.DataFrame(query_fetch)
     grouped_by_client = all_data.groupby(by='client')
-    sns.set(style="whitegrid")
+
     for id_client in clients:
         client_group = grouped_by_client.groups[id_client]
         client_results = all_data.iloc[client_group][["client", "iron", "component"]].dropna().reset_index(drop=True)
-        sns.boxplot(x="client", y="iron", hue="component", data=client_results)
+        counts = []
+        for component in set(client_results["component"]):
+            counts.append(str(component) + "- n = " + str(len(client_results["iron"][client_results["component"] == component])))
+        boxes = sns.boxplot(x="client", y="iron", hue="component", data=client_results)
+        leg = boxes.axes.get_legend()
+        for t, l in zip(leg.texts, counts): t.set_text(l)
         plt.xlabel("cliente")
         plt.title('boxplot por componente para ' + id_client)
         plt.grid(True)
         plt.savefig(outfolder + 'bloxplot-' + id_client + '.pdf', bbox_inches='tight')
+        plt.show()
 
 
 if __name__ == '__main__':
