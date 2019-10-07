@@ -1,7 +1,6 @@
 import pandas as pd
 import MySQLdb
 import argparse
-from datetime import datetime as dt
 from pymongo import MongoClient
 
 STNG_ID_2_CHARACTERIZATION = {
@@ -96,7 +95,9 @@ def main(user, password, db_name, table_name, mysql_db):
     print("finished reading data")
 
     dict_muestra = pd.Series(data_muestra.id_componente.values, index=data_muestra.correlativo_muestra).to_dict()
+    dict_changes = pd.Series(data_muestra.cambio_componente.values, index=data_muestra.correlativo_muestra).to_dict()
     dict_componente = pd.Series(data_componente.id_equipo.values, index=data_componente.id_componente).to_dict()
+    dict_tipo_componente = pd.Series(data_componente.id_tipo_componente.values, index=data_componente.id_componente).to_dict()
     dict_equipo = pd.Series(data_equipo.id_faena.values, index=data_equipo.id_equipo).to_dict()
     dict_faena = pd.Series(data_faena.id_cliente.values, index=data_faena.id_faena).to_dict()
     dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
@@ -146,7 +147,8 @@ def main(user, password, db_name, table_name, mysql_db):
                 if dict_muestra.get(group[0]) is None or dict_componente.get(dict_muestra[group[0]]) is None:
                     continue
                 id_component = dict_componente[dict_muestra[group[0]]]
-                records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]], 'component': id_component})
+                records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]], 'component': id_component, 'component_type': dict_tipo_componente[id_component],
+                                'change': dict_changes[group[0]]})
                 print(records)
                 table_mongo.insert(records)
             except Exception as e:
