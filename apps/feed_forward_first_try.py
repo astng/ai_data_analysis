@@ -32,6 +32,7 @@ def clean_data_used(data):
         return [data[0:data_len].astype(np.float32)], np.array([data[data_len]]).astype(np.float32)
 
 
+
 def plot_history(history):
     hist = pd.DataFrame(history.history)
     hist['epoch'] = history.epoch
@@ -81,6 +82,6 @@ def main(dataset_file: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_file', required=True, type=str)
+    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset.h5")
     cmd_args = parser.parse_args()
     main(cmd_args.dataset_file)
