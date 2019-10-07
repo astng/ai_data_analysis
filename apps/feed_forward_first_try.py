@@ -3,10 +3,10 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 
+from datetime import datetime
 import matplotlib.pyplot as plt
 from tensorflow import keras
 from tensorflow.keras import layers
-
 
 data_len = 10
 
@@ -32,7 +32,6 @@ def clean_data_used(data):
         return [data[0:data_len].astype(np.float32)], np.array([data[data_len]]).astype(np.float32)
 
 
-
 def plot_history(history):
     hist = pd.DataFrame(history.history)
     hist['epoch'] = history.epoch
@@ -48,7 +47,7 @@ def plot_history(history):
     plt.xlabel('Epoch')
     plt.ylabel('Mean Square Error [$MPG^2$]')
     plt.plot(hist['epoch'], hist['mse'], label='Train Error')
-    plt.plot(hist['epoch'], hist['val_mse'], label = 'Val Error')
+    plt.plot(hist['epoch'], hist['val_mse'], label='Val Error')
     plt.legend()
     plt.show()
 
@@ -76,7 +75,11 @@ def main(dataset_file: str):
 
     model = build_model()
 
-    history = model.fit(train_data, validation_data=validation_data,  epochs=100)
+    logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
+
+    history = model.fit(train_data, validation_data=validation_data,  epochs=100, verbose=0,
+                        callbacks=[tensorboard_callback])
     plot_history(history)
 
 
