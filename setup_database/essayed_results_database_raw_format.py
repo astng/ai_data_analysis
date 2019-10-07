@@ -79,8 +79,8 @@ def main(user, password, db_name, table_name, mysql_db):
 
     sql_resultado = 'select id_resultado, valor, id_ensayo, correlativo_muestra,' \
                     ' id_protocolo from trib_resultado'
-    sql_muestra = 'select correlativo_muestra, id_componente from trib_muestra'
-    sql_componente = 'select id_componente, id_equipo from trib_componente'
+    sql_muestra = 'select correlativo_muestra, id_componente, cambio_componente from trib_muestra'
+    sql_componente = 'select id_componente, id_equipo, id_tipo_componente from trib_componente'
     sql_equipo = 'select id_equipo, id_faena from trib_equipo'
     sql_faena = 'select id_faena, id_cliente from trib_faena'
     sql_cliente = 'select id_cliente, nombre_abreviado from trib_cliente'
