@@ -3,6 +3,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 
+import matplotlib.pyplot as plt
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -12,7 +13,7 @@ data_len = 10
 
 def build_model():
     model = keras.Sequential([
-        layers.Dense(64, activation='relu', input_shape=[data_len - 1]),
+        layers.Dense(64, activation='relu', input_shape=[data_len]),
         layers.Dense(64, activation='relu'),
         layers.Dense(1)
     ])
@@ -28,16 +29,27 @@ def clean_data_used(data):
     else:
         if pd.isna(data[0:data_len+1]).any():
             return np.nan, np.nan
-        return data[0:data_len], data[data_len]
+        return [data[0:data_len].astype(np.float32)], np.array([data[data_len]]).astype(np.float32)
 
 
-def decode_arrays(encoded_array):
-    return np.frombuffer(encoded_array.numpy(), dtype=np.float32)
+def plot_history(history):
+    hist = pd.DataFrame(history.history)
+    hist['epoch'] = history.epoch
 
+    plt.figure()
+    plt.xlabel('Epoch')
+    plt.ylabel('Mean Abs Error [MPG]')
+    plt.plot(hist['epoch'], hist['mae'], label='Train Error')
+    plt.plot(hist['epoch'], hist['val_mae'], label='Val Error')
+    plt.legend()
 
-def decode_arrays_tf(tf_encoded):
-    [decode, ] = tf.py_function(decode_arrays, [tf_encoded], [np.float32])
-    return decode
+    plt.figure()
+    plt.xlabel('Epoch')
+    plt.ylabel('Mean Square Error [$MPG^2$]')
+    plt.plot(hist['epoch'], hist['mse'], label='Train Error')
+    plt.plot(hist['epoch'], hist['val_mse'], label = 'Val Error')
+    plt.legend()
+    plt.show()
 
 
 def main(dataset_file: str):
@@ -50,14 +62,21 @@ def main(dataset_file: str):
         print("error: feature and labels with different larges")
         exit(1)
 
-    dataset_cleaned_pandas = dataset_x.map(lambda x: x[~np.isnan(x)].astype(np.float32).tobytes())
-    dataset_tf = tf.data.Dataset.from_tensor_slices(dataset_cleaned_pandas)
-    dataset_tf = dataset_tf.map(decode_arrays_tf)
-    dataset_tf_y = tf.data.Dataset.from_tensor_slices(dataset_y)
+    msk = np.random.rand(len(dataset_x)) < 0.8
 
-    for features, output_desire in zip(dataset_tf.take(100), dataset_tf_y.take(100)):
-        print('Features: ', features, 'desired_output', output_desire)
-        print(features.shape, output_desire.shape)
+    train_x = dataset_x[msk]
+    validation_x = dataset_x[~msk]
+
+    train_y = dataset_y[msk]
+    validation_y = dataset_y[~msk]
+
+    train_data = tf.data.Dataset.from_tensor_slices((train_x, train_y))
+    validation_data = tf.data.Dataset.from_tensor_slices((validation_x, validation_y))
+
+    model = build_model()
+
+    history = model.fit(train_data, validation_data=validation_data,  epochs=100)
+    plot_history(history)
 
 
 if __name__ == '__main__':
