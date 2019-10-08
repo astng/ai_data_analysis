@@ -83,7 +83,7 @@ def main(dataset_file: str):
             logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
             tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
-            history = model.fit(train_data, validation_data=validation_data,  epochs=1000, verbose=0, callbacks=[tensorboard_callback])
+            history = model.fit(train_data, validation_data=validation_data,  epochs=200, verbose=0, callbacks=[tensorboard_callback])
             plot_history(history, size, rate)
 
 
