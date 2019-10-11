@@ -80,7 +80,7 @@ def main(user, password, db_name, table_name, mysql_db):
                     ' id_protocolo from trib_resultado'
     sql_muestra = 'select correlativo_muestra, id_componente, cambio_componente from trib_muestra'
     sql_componente = 'select id_componente, id_equipo, id_tipo_componente from trib_componente'
-    sql_equipo = 'select id_equipo, id_faena from trib_equipo'
+    sql_equipo = 'select id_equipo, id_faena, id_tipo_equipo from trib_equipo'
     sql_faena = 'select id_faena, id_cliente from trib_faena'
     sql_cliente = 'select id_cliente, nombre_abreviado from trib_cliente'
 
@@ -99,6 +99,7 @@ def main(user, password, db_name, table_name, mysql_db):
     dict_componente = pd.Series(data_componente.id_equipo.values, index=data_componente.id_componente).to_dict()
     dict_tipo_componente = pd.Series(data_componente.id_tipo_componente.values, index=data_componente.id_componente).to_dict()
     dict_equipo = pd.Series(data_equipo.id_faena.values, index=data_equipo.id_equipo).to_dict()
+    dict_tipo_equipo = pd.Series(data_equipo.id_tipo_equipo.values, index=data_equipo.id_equipo).to_dict()
     dict_faena = pd.Series(data_faena.id_cliente.values, index=data_faena.id_faena).to_dict()
     dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
     data_resultado = data_resultado.loc[data_resultado['id_ensayo'].notna()]
@@ -148,7 +149,7 @@ def main(user, password, db_name, table_name, mysql_db):
                     continue
                 id_component = dict_componente[dict_muestra[group[0]]]
                 records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]], 'component': id_component, 'component_type': dict_tipo_componente[id_component],
-                                'change': dict_changes[group[0]]})
+                                'change': dict_changes[group[0]], 'machine_type': dict_tipo_equipo[dict_equipo[id_component]]})
                 print(records)
                 table_mongo.insert(records)
             except Exception as e:
