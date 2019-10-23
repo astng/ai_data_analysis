@@ -2,7 +2,6 @@ import argparse
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-
 from datetime import datetime
 import matplotlib.pyplot as plt
 from tensorflow import keras
@@ -76,7 +75,7 @@ def main(dataset_file: str):
     model = build_model()
 
     logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
+    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir, histogram_freq=1)
 
     history = model.fit(train_data, validation_data=validation_data,  epochs=100, verbose=0,
                         callbacks=[tensorboard_callback])
