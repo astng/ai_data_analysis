@@ -2,13 +2,22 @@ import argparse
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-
-from datetime import datetime
 import matplotlib.pyplot as plt
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.keras.callbacks import LearningRateScheduler
 
 data_len = 10
+
+
+def reducer(epoch, initial):
+    # increase epoch by 1 as epochs are counted from 0
+    epoch = epoch + 1
+    if epoch < 5:
+        return initial
+    else:
+        # the return of the scheduler must be a float
+        return initial * np.exp(0.1 * (5 - epoch))
 
 
 def build_model(neurons, rate, method):
@@ -60,8 +69,9 @@ def plot_history(histories, rate, units, optimizer):
     ax1.legend(legends)
     ax2.legend(legends)
 
-    plt.savefig("../Informe2/figs/performances/Opt_" + optimizer + "-rate_" + str(rate) + "-" + str(units) + "neurons" + ".pdf")
-    #plt.show()
+    plt.savefig("../figures/id_component/adaptive_rate/Opt_" + optimizer + "-rate_" + str(rate) + "-" + str(units)
+                + "neurons" + ".pdf")
+    # plt.show()
 
 
 def main(dataset_file: str):
@@ -95,16 +105,19 @@ def main(dataset_file: str):
 
                     model = build_model(units, rate, optimizer)
 
-                    logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-                    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
+#                    logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+                    logdir = "tensorboards_logs_feedforward/scalars/id_component/adaptive_rate/Opt_" + optimizer +\
+                             "-rate_" + str(rate) + "-" + str(units) + "neurons-" + str(size) + "training set size"
+                    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir, histogram_freq=1)
 
-                    history = model.fit(train_data, validation_data=validation_data,  epochs=150, verbose=0, callbacks=[tensorboard_callback])
+                    history = model.fit(train_data, validation_data=validation_data, epochs=100, verbose=0,
+                                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer, rate)])
                     histories[size] = history
                 plot_history(histories, rate, units, optimizer)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset-type.h5")
+    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset.h5")
     cmd_args = parser.parse_args()
     main(cmd_args.dataset_file)
