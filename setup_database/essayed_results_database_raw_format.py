@@ -94,7 +94,6 @@ def main(user, password, db_name, table_name, mysql_db):
     sql_equipo = 'select id_equipo, id_faena, id_tipo_equipo from trib_equipo'
     sql_faena = 'select id_faena, id_cliente from trib_faena'
     sql_cliente = 'select id_cliente, nombre_abreviado from trib_cliente'
-    sql_ensayo_protocolo = 'select id_protocolo, id_ensayo, lim_inf_condenatorio, lim_inf_marginal, lim_sup_marginal, lim_sup_condenatorio from trib_ensayo_protocolo'
 
     print("getting all data from mysql")
     data_resultado = pd.read_sql(sql_resultado, con=mysql_cn)
@@ -103,10 +102,6 @@ def main(user, password, db_name, table_name, mysql_db):
     data_equipo = pd.read_sql(sql_equipo, con=mysql_cn)
     data_faena = pd.read_sql(sql_faena, con=mysql_cn)
     data_cliente = pd.read_sql(sql_cliente, con=mysql_cn)
-    data_ensayo_protocolo = pd.read_sql(sql_ensayo_protocolo, con=mysql_cn)
-    data_ensayo_protocolo = data_ensayo_protocolo.loc[(data_ensayo_protocolo['lim_sup_marginal'].notna()) & (data_ensayo_protocolo['lim_sup_condenatorio'].notna())
-     & (data_ensayo_protocolo['lim_inf_marginal'].notna()) & (data_ensayo_protocolo['lim_inf_condenatorio'].notna())]
-    data_ensayo_protocolo['id_ensayo'] = data_ensayo_protocolo['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
     data_cliente['nombre_abreviado'] = data_cliente['nombre_abreviado'].map(lambda x: x.replace(' ', '_'))
     print("finished reading data")
 
@@ -118,8 +113,6 @@ def main(user, password, db_name, table_name, mysql_db):
     dict_tipo_equipo = pd.Series(data_equipo.id_tipo_equipo.values, index=data_equipo.id_equipo).to_dict()
     dict_faena = pd.Series(data_faena.id_cliente.values, index=data_faena.id_faena).to_dict()
     dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
-    data_ensayo_protocolo.index = pd.MultiIndex.from_frame(data_ensayo_protocolo[["id_protocolo", "id_ensayo"]])
-    dict_ensayo_protocolo = data_ensayo_protocolo.groupby(level=0).apply(lambda data_ensayo_protocolo: data_ensayo_protocolo.xs(data_ensayo_protocolo.name).id_protocolo.to_dict()).to_dict()
     data_resultado = data_resultado.loc[data_resultado['id_ensayo'].notna()]
     data_resultado['id_ensayo'] = data_resultado['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
 
