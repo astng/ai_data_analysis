@@ -6,8 +6,18 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from tensorflow import keras
 from tensorflow.keras import layers
-
+from tensorflow.keras.callbacks import LearningRateScheduler
 data_len = 10
+
+
+def reducer(epoch):
+    # increase epoch by 1 as epochs are counted from 0
+    epoch = epoch + 1
+    if epoch < 5:
+        return 0.001
+    else:
+        # the return of the scheduler must be a float
+        return 0.001 * np.exp(0.1 * (5 - epoch))
 
 
 def build_model():
@@ -26,7 +36,7 @@ def clean_data_used(data):
     if len(data) < data_len + 1:
         return np.nan, np.nan
     else:
-        if pd.isna(data[0:data_len+1]).any():
+        if pd.isna(data[0:data_len + 1]).any():
             return np.nan, np.nan
         return [data[0:data_len].astype(np.float32)], np.array([data[data_len]]).astype(np.float32)
 
@@ -77,8 +87,8 @@ def main(dataset_file: str):
     logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir, histogram_freq=1)
 
-    history = model.fit(train_data, validation_data=validation_data,  epochs=100, verbose=0,
-                        callbacks=[tensorboard_callback])
+    history = model.fit(train_data, validation_data=validation_data, epochs=100, verbose=0,
+                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer)])
     plot_history(history)
 
 
