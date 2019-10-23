@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import MySQLdb
 import argparse
@@ -66,6 +67,14 @@ STNG_ID_2_CHARACTERIZATION = {
 
 def main(user, password, db_name, table_name, mysql_db):
     client = MongoClient()
+    db_limits_name = "test"
+    table_limits_name = "essay_limits"
+    db_mongo_limits = client[db_limits_name]
+    table_limits = db_mongo_limits[table_limits_name]
+    query_fetch = table_limits.find()
+    all_limits_data = pd.DataFrame(query_fetch)
+
+
     db_mongo = client[db_name]
     table_mongo = db_mongo[table_name]
     table_mongo_rejected = db_mongo[table_name + "_rejected"]
@@ -104,6 +113,7 @@ def main(user, password, db_name, table_name, mysql_db):
     dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
     data_resultado = data_resultado.loc[data_resultado['id_ensayo'].notna()]
     data_resultado['id_ensayo'] = data_resultado['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
+
     group_by_correlative = data_resultado.groupby(by='correlativo_muestra')
     count = 0
     for group in group_by_correlative:
@@ -148,8 +158,16 @@ def main(user, password, db_name, table_name, mysql_db):
                 if dict_muestra.get(group[0]) is None or dict_componente.get(dict_muestra[group[0]]) is None:
                     continue
                 id_component = dict_componente[dict_muestra[group[0]]]
-                records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]], 'component': id_component, 'component_type': dict_tipo_componente[id_component],
-                                'change': dict_changes[group[0]], 'machine_type': dict_tipo_equipo[dict_equipo[id_component]]})
+                all_protocols = np.isin(all_limits_data.id_protocol.values, group[1].id_protocolo.unique())
+                df_limits = all_limits_data[all_protocols].set_index('essayed')
+                limits_cleaned = df_limits.loc[:, ['LIC', 'LIM', 'LSM', 'LSC']].reset_index()\
+                    .pivot_table(columns='essayed').unstack()
+                limits_cleaned.index = limits_cleaned.reset_index()[['essayed', 'level_1']].sum(axis=1)
+                records.update(limits_cleaned.to_dict())
+                records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]],
+                                'component': id_component, 'component_type': dict_tipo_componente[id_component],
+                                'change': dict_changes[group[0]],
+                                'machine_type': dict_tipo_equipo[dict_equipo[id_component]]})
                 print(records)
                 table_mongo.insert(records)
             except Exception as e:
