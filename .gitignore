@@ -123,4 +123,4 @@ venv.bak/
 dmypy.json
 
 # Pyre type checker
-.pyre/
+.pyre/apps/tensorboards_logs_feedforward/
