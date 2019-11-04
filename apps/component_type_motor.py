@@ -17,6 +17,7 @@ def main(database: str, table: str, outfolder: str):
     all_data = pd.DataFrame(query_fetch)
     print("from ungrouped:")
     print(all_data.columns)
+    grouped_by_component_type = all_data.groupby(by='component_type')
     for type in types:
         component_group = grouped_by_component_type.groups[type]
         results = all_data.iloc[component_group]["iron"].dropna().reset_index(drop=True)
@@ -39,10 +40,10 @@ def main(database: str, table: str, outfolder: str):
             legend.append("id_component: " + str(id_component))
             plt.plot(component_results[:time_horizon])
             limits = all_data["ironLSC"][all_data['component'] == id_component].dropna().reset_index(drop=True)
-            protocols = all_data.iloc[group]["id_protocol"].dropna().reset_index(drop=True)
+            protocols = all_data["id_protocol"][all_data['component'] == id_component].dropna().reset_index(drop=True)
             plt.plot(limits[:time_horizon], linestyle='dashed', label='_nolegend_')
-            plt.plot(protocols[:time_horizon], linestyle='dotted', label="prot " + list(set(protocols))[0]
-                                                                                   + "for id_comp " + str(id_component))
+            plt.plot(protocols[:time_horizon], linestyle='dotted')
+            legend.append("prot " + str(list(set(protocols))[0]) + "for id_comp " + str(id_component))
         plt.legend(legend)
         plt.xlabel("muestras")
         plt.title('Analisis del nivel de fierro para motor diesel (id_tipo_componente: ' + str(type) + ')')

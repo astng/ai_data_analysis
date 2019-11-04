@@ -38,16 +38,16 @@ def main(database: str, table: str, outfolder: str):
             component_results = all_data["iron"][all_data['component'] == id_component].dropna().reset_index(drop=True)
             legend.append(id_component)
             plt.plot(component_results[:time_horizon])
-            limits = all_data.iloc[group]["ironLSC"].dropna().reset_index(drop=True)
-            protocols = all_data.iloc[group]["id_protocol"].dropna().reset_index(drop=True)
-            axs[row, col].plot(limits[:time_horizon], linestyle='dashed', label='_nolegend_')
-            axs[row, col].plot(protocols[:time_horizon], linestyle='dotted', label="prot " + list(set(protocols))[0]
-                                                                                   + "for id_comp " + str(id_component))
+            limits = all_data["ironLSC"][all_data['component'] == id_component].dropna().reset_index(drop=True)
+            protocols = all_data["id_protocol"][all_data['component'] == id_component].dropna().reset_index(drop=True)
+            plt.plot(limits[:time_horizon], linestyle='dashed', label='_nolegend_')
+            plt.plot(protocols[:time_horizon], linestyle='dotted')
+            legend.append("prot " + str(list(set(protocols))[0]) + "for id_comp " + str(id_component))
         plt.legend(legend)
         plt.xlabel("muestras")
-        plt.title('Analisis del nivel de fierro para id_tipo_componente ' + type)
+        plt.title('Analisis del nivel de fierro para id_tipo_componente ' + str(type))
         plt.grid(True)
-        plt.savefig(outfolder + 'with_protocol_component_type' + type + '.pdf', bbox_inches='tight')
+        plt.savefig(outfolder + 'with_protocol_component_type' + str(type) + '.pdf', bbox_inches='tight')
         plt.show()
 
 

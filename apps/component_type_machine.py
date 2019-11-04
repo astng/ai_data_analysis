@@ -71,8 +71,9 @@ def main(database: str, table: str, outfolder: str):
                     axs[row, col].plot(results[:time_horizon])
                     axs[row, col].plot(limits[:time_horizon], linestyle='dashed', label='_nolegend_')
                     axs[row, col].plot(protocols[:time_horizon], linestyle='dotted', label="prot " +
-                                                                                           list(set(protocols))[0] + "for id_comp " + str(id_component))
+                                                                                           str(list(set(protocols))[0]) + "for id_comp " + str(id_component))
                     legend.append(id_componente)
+                    legend.append("prot " + str(list(set(protocols))[0]) + "for id_comp " + str(id_component))
                     cnt += 1
                     if cnt == n_components:
                         break
