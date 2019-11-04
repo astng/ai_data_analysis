@@ -15,7 +15,8 @@ def main(database: str, table: str, outfolder: str):
     types = [39, 630, 681, 682] # 798, 799, 1236 and 1237 shows KeyError
     components = {}
     all_data = pd.DataFrame(query_fetch)
-    grouped_by_component_type = all_data.groupby(by='component_type')
+    print("from ungrouped:")
+    print(all_data.columns)
     for type in types:
         component_group = grouped_by_component_type.groups[type]
         results = all_data.iloc[component_group]["iron"].dropna().reset_index(drop=True)
@@ -37,15 +38,16 @@ def main(database: str, table: str, outfolder: str):
             component_results = all_data["iron"][all_data['component'] == id_component].dropna().reset_index(drop=True)
             legend.append("id_component: " + str(id_component))
             plt.plot(component_results[:time_horizon])
-            # limits = all_data.iloc[group][["ironLSC", "ironLSM", "ironLIC", "ironLIM"]].reset_index(drop=True)
             limits = all_data["ironLSC"][all_data['component'] == id_component].dropna().reset_index(drop=True)
-            plt.plot(results[:time_horizon])
+            protocols = all_data.iloc[group]["id_protocol"].dropna().reset_index(drop=True)
             plt.plot(limits[:time_horizon], linestyle='dashed', label='_nolegend_')
+            plt.plot(protocols[:time_horizon], linestyle='dotted', label="prot " + list(set(protocols))[0]
+                                                                                   + "for id_comp " + str(id_component))
         plt.legend(legend)
         plt.xlabel("muestras")
         plt.title('Analisis del nivel de fierro para motor diesel (id_tipo_componente: ' + str(type) + ')')
         plt.grid(True)
-        plt.savefig(outfolder + 'LSCdieselmotor' + str(type) + '.pdf', bbox_inches='tight')
+        plt.savefig(outfolder + 'with_protocol-dieselmotor' + str(type) + '.pdf', bbox_inches='tight')
         plt.show()
 
 

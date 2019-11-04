@@ -114,6 +114,7 @@ def main(user, password, db_name, table_name, mysql_db):
     dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
     data_resultado = data_resultado.loc[data_resultado['id_ensayo'].notna()]
     data_resultado['id_ensayo'] = data_resultado['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
+    dict_protocolo = pd.Series(data_resultado.id_protocolo.values, index=data_resultado.correlativo_muestra).to_dict()
 
     group_by_correlative = data_resultado.groupby(by='correlativo_muestra')
     count = 0
@@ -168,7 +169,8 @@ def main(user, password, db_name, table_name, mysql_db):
                 records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]],
                                 'component': id_component, 'component_type': dict_tipo_componente[id_component],
                                 'change': dict_changes[group[0]], # no use for Afta BD
-                                'machine_type': dict_tipo_equipo[dict_equipo[id_component]]})
+                                'machine_type': dict_tipo_equipo[dict_equipo[id_component]],
+                                'id_protocol': dict_protocolo[group[0]]})
                                   # remark: duplicate data (ids and description) for machine_type
                 print(records)
                 table_mongo.insert(records)
