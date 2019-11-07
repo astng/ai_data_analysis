@@ -2,6 +2,7 @@ import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
 from pymongo import MongoClient
+import numpy as np
 
 time_horizon = 250
 n_tags = 4  # first n_tags with more data are plotted
@@ -31,17 +32,19 @@ def main(database: str, table: str, outfolder: str):
         id_component = set(all_data[all_data['tag'] == tag]['component'].dropna().reset_index(drop=True))
         legend.append("id_component:" + str(list(id_component)[0]))
         limits = all_data[all_data['tag'] == tag]['ironLSC'].dropna().reset_index(drop=True)
+        last_limit = list(limits)[-1]
         protocols = all_data[all_data['tag'] == tag]['id_protocol'].dropna().reset_index(drop=True)
-        legend.append("LSC")
-        legend.append("id_protocol")
+        last_protocol = list(protocols)[-1]
+        legend.append("last LSC: " + str(last_limit))
+        legend.append("last id_protocol: " + str(last_protocol))
         plt.plot(tag_results[:time_horizon])
-        plt.plot(limits[:time_horizon], linestyle='dashed')
-        plt.plot(protocols[:time_horizon], linestyle='dotted')
+        plt.plot(last_limit*np.ones(time_horizon), linestyle='dashed')
+        plt.plot(last_protocol*np.ones(time_horizon), linestyle='dotted')
         plt.legend(legend)
         plt.xlabel("muestras")
         plt.title('Analisis del nivel de fierro para tag ' + str(tag))
         plt.grid(True)
-        plt.savefig(outfolder + 'iron-tag' + str(tag) + '.pdf', bbox_inches='tight')
+        plt.savefig(outfolder + 'last-protocol_iron-tag' + str(tag) + '.pdf', bbox_inches='tight')
         plt.show()
 
 
