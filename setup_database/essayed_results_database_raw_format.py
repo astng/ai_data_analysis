@@ -67,9 +67,9 @@ STNG_ID_2_CHARACTERIZATION = {
 }
 
 
-def main(user, password, db_name, table_name, mysql_db):
+def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
     client = MongoClient()
-    db_limits_name = "stng"
+    db_limits_name = mongo_limits_db
     table_limits_name = "essay_limits"
     db_mongo_limits = client[db_limits_name]
     table_limits = db_mongo_limits[table_limits_name]
@@ -191,7 +191,9 @@ if __name__ == '__main__':
     parser.add_argument("-u", "--user", type=str, help="mysql user", required=True)
     parser.add_argument("-p", "--password", type=str, help="mysql password", required=True)
     parser.add_argument("-m", "--mysql_db", type=str, help="old code version mysql db path", required=True)
-    parser.add_argument("-d", "--db", type=str, help="mongo db name", required=True)
+    parser.add_argument("-d", "--db", type=str, help="mongo target db", required=True)
     parser.add_argument("-t", "--table", type=str, help="mongo table name", required=True)
+    parser.add_argument("-m", "--mongo_limits_db", type=str, help="mongo limtis db", required=True)
+
     cmd_args = parser.parse_args()
-    main(cmd_args.user, cmd_args.password, cmd_args.db, cmd_args.table, cmd_args.mysql_db)
+    main(cmd_args.user, cmd_args.password, cmd_args.db, cmd_args.table, cmd_args.mysql_db, cmd_args.mongo_limits_db)
