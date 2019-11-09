@@ -22,7 +22,7 @@ def reducer(epoch, initial):
 
 def build_model(neurons, rate, method):
     model = keras.Sequential([
-        layers.Dense(neurons, activation='relu', input_shape=[data_len]),
+        layers.Dense(neurons, activation='relu', input_shape=(data_len, 5)), # 5 for iron result, LSC, LSM, id_comp, comp_ty
         layers.Dense(neurons, activation='relu'),
         layers.Dense(1)
     ])
@@ -74,7 +74,7 @@ def plot_history(histories, rate, units, optimizer):
     ax2.legend(legends)
     ax3.legend(legends)
 
-    plt.savefig("../figures/id_component/normalized_input/Opt_" + optimizer + "-rate_" + str(rate) + "-" + str(units)
+    plt.savefig("../figures/whole/adaptive_rate/Opt_" + optimizer + "-rate_" + str(rate) + "-" + str(units)
                 + "neurons" + ".pdf")
     # plt.show()
 
@@ -84,7 +84,8 @@ def main(dataset_file: str):
     data_set_raw = data_set_raw.map(clean_data_used)
     dataset_x = data_set_raw.map(lambda x: x[0]).dropna()
     dataset_y = data_set_raw.map(lambda x: x[1]).dropna()
-
+    print(dataset_x)
+    print(dataset_y)
     if (dataset_y.shape[0] != dataset_x.shape[0]) or not (dataset_x.index == dataset_y.index).all():
         print("error: feature and labels with different larges")
         exit(1)
@@ -111,7 +112,7 @@ def main(dataset_file: str):
                     model = build_model(units, rate, optimizer)
 
 #                    logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-                    logdir = "tensorboards_logs_feedforward/scalars/id_component/normalized_input/Opt_" + optimizer +\
+                    logdir = "tensorboards_logs_feedforward/scalars/whole/adaptive_rate/Opt_" + optimizer +\
                              "-rate_" + str(rate) + "-" + str(units) + "neurons-" + str(size) + "training set size"
                     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
@@ -123,6 +124,6 @@ def main(dataset_file: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_file', type=str, default="../datasets/normalized-iron_dataset.h5")
+    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset-idsandlimits.h5")
     cmd_args = parser.parse_args()
     main(cmd_args.dataset_file)

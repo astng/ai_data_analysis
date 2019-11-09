@@ -89,7 +89,7 @@ def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
     sql_resultado = 'select id_resultado, valor, id_ensayo, correlativo_muestra,' \
                     ' id_protocolo from trib_resultado'
     sql_muestra = 'select correlativo_muestra, id_componente, cambio_componente from trib_muestra'
-    sql_componente = 'select id_componente, id_equipo, id_tipo_componente from trib_componente'
+    sql_componente = 'select id_componente, id_equipo, id_tipo_componente, tag from trib_componente'
     sql_equipo = 'select id_equipo, id_faena, id_tipo_equipo from trib_equipo'
     sql_faena = 'select id_faena, id_cliente from trib_faena'
     sql_cliente = 'select id_cliente, nombre_abreviado from trib_cliente'
@@ -108,6 +108,7 @@ def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
     dict_changes = pd.Series(data_muestra.cambio_componente.values, index=data_muestra.correlativo_muestra).to_dict()
     dict_componente = pd.Series(data_componente.id_equipo.values, index=data_componente.id_componente).to_dict()
     dict_tipo_componente = pd.Series(data_componente.id_tipo_componente.values, index=data_componente.id_componente).to_dict()
+    dict_tag = pd.Series(data_componente.tag.values, index=data_componente.id_componente).to_dict()
     dict_equipo = pd.Series(data_equipo.id_faena.values, index=data_equipo.id_equipo).to_dict()
     dict_tipo_equipo = pd.Series(data_equipo.id_tipo_equipo.values, index=data_equipo.id_equipo).to_dict()
     dict_faena = pd.Series(data_faena.id_cliente.values, index=data_faena.id_faena).to_dict()
@@ -168,6 +169,7 @@ def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
                 records.update(limits_cleaned.to_dict())
                 records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]],
                                 'component': id_component, 'component_type': dict_tipo_componente[id_component],
+                                'tag': dict_tag[id_component],
                                 'change': dict_changes[group[0]],  # no use for Afta BD
                                 'machine_type': dict_tipo_equipo[dict_equipo[id_component]],
                                 'id_protocol': dict_protocolo[group[0]]})

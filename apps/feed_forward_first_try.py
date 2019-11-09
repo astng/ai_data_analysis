@@ -27,7 +27,7 @@ def build_model():
         layers.Dense(1)
     ])
     optimizer = tf.keras.optimizers.RMSprop(0.001)
-    model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
+    model.compile(loss='mse', optimizer=optimizer, metrics=['mape', 'mse'])
     return model
 
 
@@ -47,9 +47,9 @@ def plot_history(history):
 
     plt.figure()
     plt.xlabel('Epoch')
-    plt.ylabel('Mean Abs Error [MPG]')
-    plt.plot(hist['epoch'], hist['mae'], label='Train Error')
-    plt.plot(hist['epoch'], hist['val_mae'], label='Val Error')
+    plt.ylabel('Mean Abs Perc Error [MPG]')
+    plt.plot(hist['epoch'], hist['mape'], label='Train Error')
+    plt.plot(hist['epoch'], hist['val_mape'], label='Val Error')
     plt.legend()
 
     plt.figure()
@@ -76,11 +76,16 @@ def main(dataset_file: str):
     train_x = dataset_x[msk]
     validation_x = dataset_x[~msk]
 
+    #train_stats = train_x.describe()
+    #train_stats = train_stats.transpose()
+    #print(train_stats)
+
     train_y = dataset_y[msk]
     validation_y = dataset_y[~msk]
 
     train_data = tf.data.Dataset.from_tensor_slices((train_x, train_y))
     validation_data = tf.data.Dataset.from_tensor_slices((validation_x, validation_y))
+
 
     model = build_model()
 

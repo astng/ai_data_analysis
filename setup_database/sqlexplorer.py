@@ -73,15 +73,19 @@ def main(user, password, mysql_db):
                                passwd=password,
                                db=mysql_db)
 
-    sql = 'select * from trib_ensayo_protocolo'
+    sql = 'select descripcion, id_tipo_componente from trib_componente'
 
     print("getting all data from mysql")
     data = pd.read_sql(sql, con=mysql_cn)
     print("finished reading data")
 
-    print(data)
-    print("columnas:",data.keys())
-
+    print(data[['id_tipo_componente','descripcion']][data['id_tipo_componente']==1237])
+    diesel_motor_component_types = [(39, "MOTOR DIESEL"), (630, "MOTOR", "MOTOR IZQUIERDO", "MOTOR DERECHO"),
+                                    (681, "MOTOR DELANTERO", "MOTOR DIESEL DELANTERO"), (682, "MOTOR TRASERO"),
+                                    (798, "MOTOR DIESEL P1", "MOTOR DIESEL DELANTERO", "MOTOR DELANTERO"),
+                                    (799, "MOTOR DIESEL P2", "MOTOR DIESEL TRASERO", "MOTOR TRASERO"),
+                                    (1236, "MOTOR DIESEL DERECHO", "MOTOR DIESEL DELANTERO"),
+                                    (1237, "MOTOR DIESEL IZQUIERDO")]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
