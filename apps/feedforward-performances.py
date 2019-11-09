@@ -2,13 +2,22 @@ import argparse
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-
-from datetime import datetime
 import matplotlib.pyplot as plt
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.keras.callbacks import LearningRateScheduler
 
 data_len = 10
+
+
+def reducer(epoch, initial):
+    # increase epoch by 1 as epochs are counted from 0
+    epoch = epoch + 1
+    if epoch < 5:
+        return initial
+    else:
+        # the return of the scheduler must be a float
+        return initial * np.exp(0.1 * (5 - epoch))
 
 
 def build_model(neurons, rate, method):
@@ -23,7 +32,7 @@ def build_model(neurons, rate, method):
         optimizer = tf.keras.optimizers.Adam(learning_rate=rate)
     elif method == 'SGD':
         optimizer = tf.keras.optimizers.SGD(learning_rate=rate)
-    model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
+    model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse', 'mape'])
     return model
 
 
@@ -39,10 +48,11 @@ def clean_data_used(data):
 
 def plot_history(histories, rate, units, optimizer):
     sizes = list(histories.keys())
-    fig, (ax1, ax2) = plt.subplots(2, sharex=True)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
     ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Mean Abs Error [MPG]')
-    ax2.set_ylabel('Mean Square Error [$MPG^2$]')
+    ax1.set_ylabel('Mean Abs Error [PPM]')
+    ax2.set_ylabel('Mean Square Error')
+    ax3.set_ylabel('Mean Abs Perc Error')
     fig.suptitle("Opt.:" + optimizer + "-rate:" + str(rate) + "-" + str(units) + "neurons")
     legends = []
     for training_size in sizes:
@@ -53,15 +63,20 @@ def plot_history(histories, rate, units, optimizer):
         ax1.plot(hist['epoch'], hist['val_mae'])
         ax2.plot(hist['epoch'], hist['mse'])
         ax2.plot(hist['epoch'], hist['val_mse'])
+        ax3.plot(hist['epoch'], hist['mape'])
+        ax3.plot(hist['epoch'], hist['val_mape'])
         legends.append('TrainError (size:' + str(training_size) + ')')
         legends.append('ValError (train_size:' + str(training_size) + ')')
     ax1.grid(True)
     ax2.grid(True)
+    ax3.grid(True)
     ax1.legend(legends)
     ax2.legend(legends)
+    ax3.legend(legends)
 
-    plt.savefig("../Informe2/figs/performances/Opt_" + optimizer + "-rate_" + str(rate) + "-" + str(units) + "neurons" + ".pdf")
-    #plt.show()
+    plt.savefig("../figures/id_component/normalized_input/Opt_" + optimizer + "-rate_" + str(rate) + "-" + str(units)
+                + "neurons" + ".pdf")
+    # plt.show()
 
 
 def main(dataset_file: str):
@@ -76,7 +91,7 @@ def main(dataset_file: str):
     training_size = [0.7, 0.75, 0.8]
     rates = [0.01, 0.001, 0.0001]
     neurons = [32, 64, 128, 256]
-    optimizers = ["Adam", "SGD", 'RMSprop']
+    optimizers = ["Adam", 'RMSprop']
 
     for optimizer in optimizers:
         for units in neurons:
@@ -95,16 +110,19 @@ def main(dataset_file: str):
 
                     model = build_model(units, rate, optimizer)
 
-                    logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+#                    logdir = "tensorboards_logs_first_try/scalars/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+                    logdir = "tensorboards_logs_feedforward/scalars/id_component/normalized_input/Opt_" + optimizer +\
+                             "-rate_" + str(rate) + "-" + str(units) + "neurons-" + str(size) + "training set size"
                     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
-                    history = model.fit(train_data, validation_data=validation_data,  epochs=150, verbose=0, callbacks=[tensorboard_callback])
+                    history = model.fit(train_data, validation_data=validation_data, epochs=100, verbose=0,
+                                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer, rate)])
                     histories[size] = history
                 plot_history(histories, rate, units, optimizer)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset-type.h5")
+    parser.add_argument('--dataset_file', type=str, default="../datasets/normalized-iron_dataset.h5")
     cmd_args = parser.parse_args()
     main(cmd_args.dataset_file)

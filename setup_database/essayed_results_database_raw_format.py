@@ -69,13 +69,12 @@ STNG_ID_2_CHARACTERIZATION = {
 
 def main(user, password, db_name, table_name, mysql_db):
     client = MongoClient()
-    db_limits_name = "test"
+    db_limits_name = "stng"
     table_limits_name = "essay_limits"
     db_mongo_limits = client[db_limits_name]
     table_limits = db_mongo_limits[table_limits_name]
     query_fetch = table_limits.find()
     all_limits_data = pd.DataFrame(query_fetch)
-
 
     db_mongo = client[db_name]
     table_mongo = db_mongo[table_name]
@@ -115,6 +114,7 @@ def main(user, password, db_name, table_name, mysql_db):
     dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
     data_resultado = data_resultado.loc[data_resultado['id_ensayo'].notna()]
     data_resultado['id_ensayo'] = data_resultado['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
+    dict_protocolo = pd.Series(data_resultado.id_protocolo.values, index=data_resultado.correlativo_muestra).to_dict()
 
     group_by_correlative = data_resultado.groupby(by='correlativo_muestra')
     count = 0
@@ -163,14 +163,14 @@ def main(user, password, db_name, table_name, mysql_db):
                 all_protocols = np.isin(all_limits_data.id_protocol.values, group[1].id_protocolo.unique())
                 df_limits = all_limits_data[all_protocols].set_index('essayed')
                 limits_cleaned = df_limits.loc[:, ['LIC', 'LIM', 'LSM', 'LSC']].reset_index()\
-                    .pivot_table(columns='essayed').unstack()
+                    .pivot_table(columns='essayed').unstack()  # unpivoting id_ensayo from essay_limits table
                 limits_cleaned.index = limits_cleaned.reset_index()[['essayed', 'level_1']].sum(axis=1)
                 records.update(limits_cleaned.to_dict())
                 records.update({'client': dict_cliente[dict_faena[dict_equipo[id_component]]],
                                 'component': id_component, 'component_type': dict_tipo_componente[id_component],
-                                'change': dict_changes[group[0]],
-                                'machine_type': dict_tipo_equipo[dict_equipo[id_component]]})
-
+                                'change': dict_changes[group[0]],  # no use for Afta BD
+                                'machine_type': dict_tipo_equipo[dict_equipo[id_component]],
+                                'id_protocol': dict_protocolo[group[0]]})
                 print(records)
                 table_mongo.insert(records)
             except Exception as e:

@@ -66,8 +66,14 @@ def main(database: str, table: str, outfolder: str):
                 if (machine_type, component_type, id_componente) in combinations:
                     group = grouped_by_triplet.groups[(machine_type, component_type, id_componente)]
                     results = all_data.iloc[group]["iron"].dropna().reset_index(drop=True)
+                    limits = all_data.iloc[group]["ironLSC"].dropna().reset_index(drop=True)
+                    protocols = all_data.iloc[group]["id_protocol"].dropna().reset_index(drop=True)
                     axs[row, col].plot(results[:time_horizon])
+                    axs[row, col].plot(limits[:time_horizon], linestyle='dashed', label='_nolegend_')
+                    axs[row, col].plot(protocols[:time_horizon], linestyle='dotted', label="prot " +
+                                                                                           str(list(set(protocols))[0]) + "for id_comp " + str(id_component))
                     legend.append(id_componente)
+                    legend.append("prot " + str(list(set(protocols))[0]) + "for id_comp " + str(id_component))
                     cnt += 1
                     if cnt == n_components:
                         break
@@ -79,7 +85,7 @@ def main(database: str, table: str, outfolder: str):
                 col = 0
                 row += 1
         fig.suptitle("machine type: " + str(machine_type))
-        plt.savefig(outfolder + 'iron-' + 'machinetype-' + str(machine_type) + '.pdf', bbox_inches='tight')
+        plt.savefig(outfolder + 'with_protocol-iron-' + 'machinetype-' + str(machine_type) + '.pdf', bbox_inches='tight')
         plt.show()
 
 
@@ -87,7 +93,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--database', type=str, required=True,
                         help="MongoDB database used in essayed_results_database_raw_format.py")
-    parser.add_argument('--outfolder', type=str, default="../Informe2/figs/")
+    parser.add_argument('--outfolder', type=str, default="../figures/iron-plots/")
     parser.add_argument('--table', type=str, required=True, help="table used in essayed_results_database_raw_format.py")
     cmd_args = parser.parse_args()
     main(cmd_args.database, cmd_args.table, cmd_args.outfolder)
