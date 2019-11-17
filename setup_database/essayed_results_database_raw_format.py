@@ -88,7 +88,7 @@ def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
 
     sql_resultado = 'select id_resultado, valor, id_ensayo, correlativo_muestra,' \
                     ' id_protocolo from trib_resultado'
-    sql_muestra = 'select correlativo_muestra, id_componente, cambio_componente from trib_muestra'
+    sql_muestra = 'select correlativo_muestra, id_componente, cambio_componente, h_k_equipo, h_k_lubricante, h_k_componente from trib_muestra'
     sql_componente = 'select id_componente, id_equipo, id_tipo_componente, tag from trib_componente'
     sql_equipo = 'select id_equipo, id_faena, id_tipo_equipo from trib_equipo'
     sql_faena = 'select id_faena, id_cliente from trib_faena'
@@ -105,6 +105,9 @@ def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
     print("finished reading data")
 
     dict_muestra = pd.Series(data_muestra.id_componente.values, index=data_muestra.correlativo_muestra).to_dict()
+    dict_hk_equipo = pd.Series(data_muestra.h_k_equipo.values, index=data_muestra.correlativo_muestra).to_dict()
+    dict_hk_lubricante = pd.Series(data_muestra.h_k_lubricante.values, index=data_muestra.correlativo_muestra).to_dict()
+    dict_hk_componente = pd.Series(data_muestra.h_k_componente.values, index=data_muestra.correlativo_muestra).to_dict()
     dict_changes = pd.Series(data_muestra.cambio_componente.values, index=data_muestra.correlativo_muestra).to_dict()
     dict_componente = pd.Series(data_componente.id_equipo.values, index=data_componente.id_componente).to_dict()
     dict_tipo_componente = pd.Series(data_componente.id_tipo_componente.values, index=data_componente.id_componente).to_dict()
@@ -171,6 +174,8 @@ def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
                                 'component': id_component, 'component_type': dict_tipo_componente[id_component],
                                 'tag': dict_tag[id_component],
                                 'change': dict_changes[group[0]],  # no use for Afta BD
+                                'h_k_equipo': dict_hk_equipo[group[0]], 'h_k_lubricante': dict_hk_lubricante[group[0]],
+                                'h_k_componente': dict_hk_componente[group[0]],
                                 'machine_type': dict_tipo_equipo[dict_equipo[id_component]],
                                 'id_protocol': dict_protocolo[group[0]]})
                 print(records)
@@ -195,7 +200,7 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--mysql_db", type=str, help="old code version mysql db path", required=True)
     parser.add_argument("-d", "--db", type=str, help="mongo target db", required=True)
     parser.add_argument("-t", "--table", type=str, help="mongo table name", required=True)
-    parser.add_argument("-m", "--mongo_limits_db", type=str, help="mongo limtis db", required=True)
+    parser.add_argument("-mongo", "--mongo_limits_db", type=str, help="mongo limtis db", required=True)
 
     cmd_args = parser.parse_args()
     main(cmd_args.user, cmd_args.password, cmd_args.db, cmd_args.table, cmd_args.mysql_db, cmd_args.mongo_limits_db)
