@@ -1,11 +1,12 @@
 import argparse
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from pymongo import MongoClient
 
 time_horizon = 30
-n_components = 2
-colors_to_plot = ['r', 'g', 'b', 'y', 'k']
+n_components = 1  # maximum of 4 components for plotting
+colors_to_plot = ['k', 'g', 'b', 'y', 'r']
 
 
 def main(database: str, table: str, outfolder: str):
@@ -45,15 +46,16 @@ def main(database: str, table: str, outfolder: str):
             component_results = all_data["iron"][all_data['component'] == id_component].dropna().reset_index(drop=True)
             legend.append("id_comp= " + str(id_component))
             ax1.plot(component_results[:time_horizon], colors_to_plot[color])
-            limits = all_data["ironLSC"][all_data['component'] == id_component].dropna().reset_index(drop=True)
-#            protocols = all_data["id_protocol"][all_data['component'] == id_component].dropna().reset_index(drop=True)
-            ax1.plot(limits[:time_horizon], colors_to_plot[color] + '--')
-            legend.append("LSC for id_comp=" + str(id_component))
-#            ax1.plot(protocols[:time_horizon], linestyle='dotted')
-#            legend.append("prot " + str(list(set(protocols))[0]) + "for id_comp " + str(id_component))
             lub_hours = all_data['h_k_lubricante'][all_data['component'] == id_component].dropna().reset_index(drop=True)
-            ax1.plot(lub_changes['h_k_lubricante'][:time_horizon], colors_to_plot[-1-color] + 'o')
-            ax1.plot(predicted_changes['iron'][:time_horizon], colors_to_plot[-1 - color] + '<')
+            component_results = component_results.loc[component_results.index & lub_changes.index]
+            component_results = component_results.loc[np.intersect1d(component_results.index, lub_changes.index)]
+            component_results = component_results.loc[component_results.index.intersection(lub_changes.index)]
+            ax1.plot(component_results[:time_horizon], colors_to_plot[-1-color] + 'o')
+            component_results = all_data["iron"][all_data['component'] == id_component].dropna().reset_index(drop=True)
+            component_results = component_results.loc[component_results.index & predicted_changes.index]
+            component_results = component_results.loc[np.intersect1d(component_results.index, predicted_changes.index)]
+            component_results = component_results.loc[component_results.index.intersection(predicted_changes.index)]
+            ax1.plot(component_results[:time_horizon], colors_to_plot[-2-color] + '<')
             legend.append("real changes for id_comp=" + str(id_component))
             legend.append("predicted changes for id_comp=" + str(id_component))
             ax2.plot(lub_hours[:time_horizon], colors_to_plot[color])
@@ -76,7 +78,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--database', type=str, required=True,
                         help="MongoDB database used in essayed_results_database_raw_format.py")
-    parser.add_argument('--outfolder', type=str, default="../figures/iron-plots/")
+    parser.add_argument('--outfolder', type=str, default="../figures/predictions/")
     parser.add_argument('--table', type=str, required=True, help="table used in essayed_results_database_raw_format.py")
     cmd_args = parser.parse_args()
     main(cmd_args.database, cmd_args.table, cmd_args.outfolder)
