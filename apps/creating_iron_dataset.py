@@ -18,7 +18,7 @@ def main(database: str, table: str, outfile: str):
 
     all_iron_component_series = list()
     for id_component, group in grouped_by_component:
-        aux = group[["component", "component_type", "machine_type", "ironLSC", "ironLSM", "iron", "h_k_lubricante"]].values
+        aux = group[["component", "component_type", "machine_type", "ironLSC", "ironLSM", "h_k_lubricante", "iron"]].values
         if pd.isna(aux).any():
             continue
         else:
