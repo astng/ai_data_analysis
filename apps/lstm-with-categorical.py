@@ -3,7 +3,6 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 from tensorflow import keras
-from tensorflow import set_random_seed
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import LearningRateScheduler
 
@@ -81,7 +80,7 @@ def plot_history(history):
 
 
 np.random.seed(420)  # from numpy
-set_random_seed(420)  # from tensorflow
+tf.random.set_seed(420)  # from tensorflow
 
 window_len = 3
 test_size = 0.25
