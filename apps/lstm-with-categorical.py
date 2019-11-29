@@ -3,6 +3,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 from tensorflow import keras
+from tensorflow import set_random_seed
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import LearningRateScheduler
 
@@ -79,14 +80,15 @@ def plot_history(history):
     plt.show(block=False)
 
 
-np.random.seed(420)
+np.random.seed(420)  # from numpy
+set_random_seed(420)  # from tensorflow
 
-window_len = 10
+window_len = 3
 test_size = 0.25
 normalise = True
 lstm_neurons = 64
 epochs = 5
-batch_size = 16
+batch_size = 4
 dropout = 0.25
 comp = 3752
 tipo_comp = 682
@@ -127,9 +129,9 @@ def main(dataset_file: str):
     model = build_model(x_train, output_size=1, neurons=lstm_neurons, drop=dropout)
     logdir = "tensorboards_logs_lstm/scalars/whole_input-numerics"
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
-    early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+#    early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
     history = model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1, shuffle=False,
-                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer), early_stop],
+                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer)],#, early_stop],
                         validation_data=(x_test, y_test))
     plot_history(history)
     plot_predictions(model, original_df, x_test_to_predict, mean, std)
