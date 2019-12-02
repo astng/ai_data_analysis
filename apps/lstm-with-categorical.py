@@ -26,7 +26,9 @@ def train_test_split(df, size=0.25):
 
 def build_model(input_data, output_size, neurons=64, drop=0.25):
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(neurons, input_shape=(input_data.shape[1], input_data.shape[2])),
+        tf.keras.layers.LSTM(neurons, input_shape=(input_data.shape[1], input_data.shape[2]), return_sequences=True),
+        tf.keras.layers.LSTM(neurons, return_sequences=True),
+        tf.keras.layers.LSTM(neurons),
         tf.keras.layers.Dropout(drop),
         tf.keras.layers.Dense(units=output_size)
     ])
@@ -82,12 +84,12 @@ def plot_history(history):
 np.random.seed(420)  # from numpy
 tf.random.set_seed(420)  # from tensorflow
 
-window_len = 3
+window_len = 10
 test_size = 0.25
 normalise = True
 lstm_neurons = 64
-epochs = 5
-batch_size = 4
+epochs = 700
+batch_size = 8
 dropout = 0.25
 comp = 3752
 tipo_comp = 682
