@@ -30,10 +30,13 @@ def build_model(input_data, output_size, neurons=64, drop=0.25):
         tf.keras.layers.LSTM(neurons, return_sequences=True),
         tf.keras.layers.LSTM(neurons),
         tf.keras.layers.Dropout(drop),
-        tf.keras.layers.Dense(units=output_size)
+        tf.keras.layers.Dense(neurons, activation='relu'),
+        tf.keras.layers.Dropout(drop),
+        tf.keras.layers.Dense(units=output_size, activation='relu')
     ])
-    optimizer = tf.keras.optimizers.RMSprop(0.001)
-    model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse', 'mape'])
+    #optimizer = tf.keras.optimizers.RMSprop(0.001)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    model.compile(loss='mae', optimizer=optimizer, metrics=['mae', 'mse', 'mape'])
     return model
 
 
@@ -81,25 +84,14 @@ def plot_history(history):
     plt.show(block=False)
 
 
-np.random.seed(420)  # from numpy
-tf.random.set_seed(420)  # from tensorflow
-
-window_len = 10
-test_size = 0.25
-normalise = True
-lstm_neurons = 64
-epochs = 700
-batch_size = 8
-dropout = 0.25
-comp = 3752
-tipo_comp = 682
-iron_denormalise = {}
-
 def plot_predictions(network_model, df, testing_set, norm_mean, norm_std):
     global batch_size
     component_results = df["iron"][df['component'] == comp].reset_index()
+    predicted_changes = df["change"][df['component'] == comp].reset_index()
     plt.figure()
     plt.plot(component_results["iron"], 'b', label='True values')
+    predicted_changes = predicted_changes.change*component_results.iron
+    plt.plot(predicted_changes[predicted_changes != 0].index, predicted_changes[predicted_changes != 0].values, 'g<', label='_nolegend')
     normal_predictions = network_model.predict(testing_set, batch_size=batch_size)
     predictions = normal_predictions * norm_std + norm_mean
     initial_zeros = np.zeros((window_len, 1))
@@ -112,11 +104,28 @@ def plot_predictions(network_model, df, testing_set, norm_mean, norm_std):
     plt.title('LSTM prediction for comp=' + str(comp) + ', tipo_comp=' + str(tipo_comp))
     plt.show()
 
+
+np.random.seed(420)  # from numpy
+tf.random.set_seed(420)  # from tensorflow
+
+window_len = 10
+test_size = 0.25
+normalise = True
+lstm_neurons = 64
+epochs = 100
+batch_size = 8
+dropout = 0.5
+comp = 3752
+tipo_comp = 682
+iron_denormalise = {}
+
+
 def main(dataset_file: str):
     data_set_raw = pd.read_hdf(dataset_file, key='df')
     data_set_raw = pd.DataFrame(data_set_raw.values.tolist())
-    data_set_raw.columns = ["component", "component_type", "machine_type", "ironLSC", "ironLSM", "h_k_lubricante",
-                            "iron"]
+    data_set_raw.columns = ["change", "component", "component_type", "machine_type", "ironLSC", "ironLSM",
+                            "h_k_lubricante", "iron"]
+    data_set_raw["change"] = 1*data_set_raw["change"]
     if normalise:
         original_df = data_set_raw.copy()
         for col in data_set_raw.columns:
@@ -124,15 +133,16 @@ def main(dataset_file: str):
                 mean, std = data_set_raw[col].mean(), data_set_raw[col].std()
             elif col == "component":
                 aux = data_set_raw[data_set_raw['component'] == comp]
-            data_set_raw[col] = (data_set_raw[col] - data_set_raw[col].mean()) / data_set_raw[col].std()
+            elif col != "change":
+                data_set_raw[col] = (data_set_raw[col] - data_set_raw[col].mean()) / data_set_raw[col].std()
     train, test, x_train, x_test, y_train, y_test = prepare_data(data_set_raw, "iron", window=window_len)
     x_test_to_predict = prepare_data(aux, "iron", window=window_len, testing_size=1)[3]
     model = build_model(x_train, output_size=1, neurons=lstm_neurons, drop=dropout)
     logdir = "tensorboards_logs_lstm/scalars/whole_input-numerics"
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
-#    early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=50)
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
     history = model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1, shuffle=False,
-                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer)],#, early_stop],
+                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer), early_stop],
                         validation_data=(x_test, y_test))
     plot_history(history)
     plot_predictions(model, original_df, x_test_to_predict, mean, std)
