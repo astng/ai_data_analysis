@@ -23,7 +23,7 @@ def main(database: str, table: str, outfile: str):
     grouped_by_correlative = all_data.groupby(by='correlativo_muestra')
     all_iron_component_series = list()
     for correlativo, group in grouped_by_correlative:
-        aux = group[["change", "component", "component_type", "machine_type", "ironLSC", "ironLSM", "h_k_lubricante",
+        aux = group[["component", "component_type", "machine_type", "change", "ironLSC", "ironLSM", "h_k_lubricante",
                      "iron"]].values
         if pd.isna(aux).any():
             continue
