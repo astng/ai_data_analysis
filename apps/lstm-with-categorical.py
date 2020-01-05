@@ -26,9 +26,9 @@ def train_test_split(df, size=0.25):
 
 def build_model(input_data, output_size, neurons=64, drop=0.25):
     model = tf.keras.models.Sequential([
-        tf.keras.layers.LSTM(neurons, input_shape=(input_data.shape[1], input_data.shape[2]), return_sequences=True),
-        tf.keras.layers.LSTM(neurons, return_sequences=True),
-        tf.keras.layers.LSTM(neurons),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(neurons, input_shape=(input_data.shape[1], input_data.shape[2]), return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(neurons, return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(neurons)),
         tf.keras.layers.Dropout(drop),
         tf.keras.layers.Dense(neurons, activation='relu'),
         tf.keras.layers.Dropout(drop),
@@ -66,7 +66,7 @@ def plot_history(history):
     ax1.set_ylabel('Mean Abs Error [%PPM]')
     ax2.set_ylabel('Mean Square Error')
     ax3.set_ylabel('Mean Abs Perc Error')
-    fig.suptitle("LSTM with all data input as (numeric) normalized values")
+    fig.suptitle("Bidirectional 3xLSTM with all data input as numeric values")
     hist = pd.DataFrame(history.history)
     hist['epoch'] = history.epoch
     ax1.plot(hist['epoch'], hist['mae'], label='Training Error')
@@ -123,7 +123,7 @@ iron_denormalise = {}
 def main(dataset_file: str):
     data_set_raw = pd.read_hdf(dataset_file, key='df')
     data_set_raw = pd.DataFrame(data_set_raw.values.tolist())
-    data_set_raw.columns = ["change", "component", "component_type", "machine_type", "ironLSC", "ironLSM",
+    data_set_raw.columns = ["component", "component_type", "machine_type", "change", "ironLSC", "ironLSM",
                             "h_k_lubricante", "iron"]
     data_set_raw["change"] = 1*data_set_raw["change"]
     if normalise:
@@ -133,7 +133,7 @@ def main(dataset_file: str):
                 mean, std = data_set_raw[col].mean(), data_set_raw[col].std()
             elif col == "component":
                 aux = data_set_raw[data_set_raw['component'] == comp]
-            elif col != "change":
+            if col != "change" and col != "iron":
                 data_set_raw[col] = (data_set_raw[col] - data_set_raw[col].mean()) / data_set_raw[col].std()
     train, test, x_train, x_test, y_train, y_test = prepare_data(data_set_raw, "iron", window=window_len)
     x_test_to_predict = prepare_data(aux, "iron", window=window_len, testing_size=1)[3]
