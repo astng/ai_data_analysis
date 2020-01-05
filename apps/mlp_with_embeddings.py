@@ -127,7 +127,7 @@ batch_size = 8
 dropout = 0.2
 comp = 3752
 tipo_comp = 682
-
+data_len = 10
 
 def main(dataset_file: str):
     data_set_raw = pd.read_hdf(dataset_file, key='df')
@@ -162,12 +162,12 @@ def main(dataset_file: str):
         num_inputs.append(numeric_input)
 
     merged_num_inputs = layers.concatenate(num_inputs)
-    # numeric_dense = layers.Dense(20, activation='relu')(merged_num_inputs)
+    numeric_dense = layers.Dense(20, activation='relu')(merged_num_inputs)
 
     merged_inputs = layers.concatenate(embeddings)
     spatial_dropout = layers.SpatialDropout1D(dropout)(merged_inputs)
     flat_embed = layers.Flatten()(spatial_dropout)
-    all_features = layers.concatenate([flat_embed, merged_num_inputs])
+    all_features = layers.concatenate([flat_embed, numeric_dense])
 
     x = layers.Dropout(dropout)(layers.Dense(100, activation='relu')(all_features))
     x = layers.Dropout(dropout)(layers.Dense(50, activation='relu')(x))
@@ -177,7 +177,7 @@ def main(dataset_file: str):
     output = layers.Dense(1, activation='relu')(x)
     model = models.Model(inputs=cat_inputs + num_inputs, outputs=output)
 
-    model.compile(loss='mae', optimizer="adam", metrics=['mae', 'mse'])
+    model.compile(loss='mse', optimizer="adam", metrics=['mae', 'mse'])
 
     print(model.summary())
 
@@ -195,7 +195,7 @@ def main(dataset_file: str):
     x_test = get_keras_dataset(test_df[feature_cols])
     y_test = np.asarray(test_df[target_col])
 
-    early_stop = callbacks.EarlyStopping(monitor='val_loss', patience=10)
+    early_stop = callbacks.EarlyStopping(monitor='val_loss', patience=30)
 
     _hist = model.fit(x=x_train, y=y_train, validation_data=(x_test, y_test), epochs=epochs, batch_size=batch_size,
                       callbacks=[LearningRateScheduler(reducer), early_stop], verbose=1,
