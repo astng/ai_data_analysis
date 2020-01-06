@@ -121,6 +121,7 @@ iron_denormalise = {}
 
 
 def main(essay: str, dataset_file: str):
+    print(essay)
     if essay != "iron":
         dataset_file = dataset_file.replace("iron", essay)
     data_set_raw = pd.read_hdf(dataset_file, key='df')
@@ -153,6 +154,6 @@ def main(essay: str, dataset_file: str):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--essay', type=str, default="iron")
-    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset-whole.h5")
+    parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset.h5")
     cmd_args = parser.parse_args()
     main(cmd_args.essay, cmd_args.dataset_file)
