@@ -112,7 +112,7 @@ window_len = 10
 test_size = 0.25
 normalise = True
 lstm_neurons = 64
-epochs = 1
+epochs = 100
 batch_size = 8
 dropout = 0.5
 comp = 3752
@@ -144,8 +144,13 @@ def main(essay: str, dataset_file: str):
     logdir = "tensorboards_logs_lstm/scalars/whole_input-numerics"
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
     early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
+    bm_callback = keras.callbacks.ModelCheckpoint(
+        filepath="../models/" + essay + "_best_model.h5",
+        save_best_only=True,
+        save_weights_only=False
+    )
     history = model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1, shuffle=False,
-                        callbacks=[tensorboard_callback, LearningRateScheduler(reducer), early_stop],
+                        callbacks=[bm_callback, tensorboard_callback, LearningRateScheduler(reducer), early_stop],
                         validation_data=(x_test, y_test))
     plot_history(history, essay)
     plot_predictions(model, original_df, x_test_to_predict, essay)
