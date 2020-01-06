@@ -59,8 +59,7 @@ def prepare_data(df, target_col, window=10, testing_size=0.25):
     return train_data, test_data, x_train, x_test, y_train, y_test
 
 
-def plot_history(history):
-
+def plot_history(history, essay):
     fig, (ax1, ax2, ax3) = plt.subplots(3, sharex='all')
     ax1.set_xlabel('Epoch')
     ax1.set_ylabel('Mean Abs Error [%PPM]')
@@ -81,28 +80,29 @@ def plot_history(history):
     ax2.grid(True)
     ax3.legend()
     ax3.grid(True)
-    plt.show(block=False)
+#    plt.show(block=False)
+    plt.savefig("../figures/essays_predictions/" + essay + "_3xbidir_lstm_errors.pdf")
 
-
-def plot_predictions(network_model, df, testing_set, norm_mean, norm_std):
+def plot_predictions(network_model, df, testing_set, essay):
     global batch_size
-    component_results = df["iron"][df['component'] == comp].reset_index()
+    component_results = df[essay][df['component'] == comp].reset_index()
     predicted_changes = df["change"][df['component'] == comp].reset_index()
     plt.figure()
-    plt.plot(component_results["iron"], 'b', label='True values')
-    predicted_changes = predicted_changes.change*component_results.iron
+    plt.plot(component_results[essay], 'b', label='True values')
+    predicted_changes = predicted_changes.change*component_results[essay]
     plt.plot(predicted_changes[predicted_changes != 0].index, predicted_changes[predicted_changes != 0].values, 'g<', label='_nolegend')
-    normal_predictions = network_model.predict(testing_set, batch_size=batch_size)
-    predictions = normal_predictions * norm_std + norm_mean
+    predictions = network_model.predict(testing_set, batch_size=batch_size)
+#    predictions = normal_predictions * norm_std + norm_mean
     initial_zeros = np.zeros((window_len, 1))
     predictions = np.vstack([initial_zeros, predictions])
     plt.plot(predictions, 'r--', label='Predictions')
     plt.xlabel('Sample')
-    plt.ylabel('Iron [PPM]')
+    plt.ylabel(essay + ' [PPM]')
     plt.legend(loc='upper right')
     plt.grid(True)
-    plt.title('LSTM prediction for comp=' + str(comp) + ', tipo_comp=' + str(tipo_comp))
-    plt.show()
+    plt.title('Bidirectional 3xLSTM prediction for comp=' + str(comp) + ', tipo_comp=' + str(tipo_comp))
+#    plt.show()
+    plt.savefig("../figures/essays_predictions/" + essay + "_3xbidir_lstm_prediction.pdf")
 
 
 np.random.seed(420)  # from numpy
@@ -112,7 +112,7 @@ window_len = 10
 test_size = 0.25
 normalise = True
 lstm_neurons = 64
-epochs = 100
+epochs = 1
 batch_size = 8
 dropout = 0.5
 comp = 3752
@@ -120,36 +120,39 @@ tipo_comp = 682
 iron_denormalise = {}
 
 
-def main(dataset_file: str):
+def main(essay: str, dataset_file: str):
+    if essay != "iron":
+        dataset_file = dataset_file.replace("iron", essay)
     data_set_raw = pd.read_hdf(dataset_file, key='df')
     data_set_raw = pd.DataFrame(data_set_raw.values.tolist())
-    data_set_raw.columns = ["component", "component_type", "machine_type", "change", "ironLSC", "ironLSM",
-                            "h_k_lubricante", "iron"]
+    data_set_raw.columns = ["component", "component_type", "machine_type", "change", essay + "LSC", essay + "LSM",
+                            "h_k_lubricante", essay]
     data_set_raw["change"] = 1*data_set_raw["change"]
     if normalise:
         original_df = data_set_raw.copy()
         for col in data_set_raw.columns:
-            if col == "iron":
+            if col == essay:
                 mean, std = data_set_raw[col].mean(), data_set_raw[col].std()
             elif col == "component":
                 aux = data_set_raw[data_set_raw['component'] == comp]
-            if col != "change" and col != "iron":
+            if col != "change" and col != essay:
                 data_set_raw[col] = (data_set_raw[col] - data_set_raw[col].mean()) / data_set_raw[col].std()
-    train, test, x_train, x_test, y_train, y_test = prepare_data(data_set_raw, "iron", window=window_len)
-    x_test_to_predict = prepare_data(aux, "iron", window=window_len, testing_size=1)[3]
+    train, test, x_train, x_test, y_train, y_test = prepare_data(data_set_raw, essay, window=window_len)
+    x_test_to_predict = prepare_data(aux, essay, window=window_len, testing_size=1)[3]
     model = build_model(x_train, output_size=1, neurons=lstm_neurons, drop=dropout)
     logdir = "tensorboards_logs_lstm/scalars/whole_input-numerics"
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
-    early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=20)
     history = model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=1, shuffle=False,
                         callbacks=[tensorboard_callback, LearningRateScheduler(reducer), early_stop],
                         validation_data=(x_test, y_test))
-    plot_history(history)
-    plot_predictions(model, original_df, x_test_to_predict, mean, std)
+    plot_history(history, essay)
+    plot_predictions(model, original_df, x_test_to_predict, essay)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--essay', type=str, default="iron")
     parser.add_argument('--dataset_file', type=str, default="../datasets/iron_dataset-whole.h5")
     cmd_args = parser.parse_args()
-    main(cmd_args.dataset_file)
+    main(cmd_args.essay, cmd_args.dataset_file)
