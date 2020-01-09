@@ -7,6 +7,7 @@ from pymongo import MongoClient
 pd.set_option('display.max_columns', 50)
 
 STNG_ID_2_CHARACTERIZATION = {
+    0: "unknown",
     35: "karl_fisher_water",
     3: "aluminium",
     42: "antifreeze",
@@ -117,7 +118,9 @@ def main(user, password, db_name, table_name, mysql_db, mongo_limits_db):
     dict_faena = pd.Series(data_faena.id_cliente.values, index=data_faena.id_faena).to_dict()
     dict_cliente = pd.Series(data_cliente.nombre_abreviado.values, index=data_cliente.id_cliente).to_dict()
     data_resultado = data_resultado.loc[data_resultado['id_ensayo'].notna()]
+    data_resultado = data_resultado[data_resultado['id_ensayo'] <= 57]
     data_resultado['id_ensayo'] = data_resultado['id_ensayo'].map(lambda x: STNG_ID_2_CHARACTERIZATION[x])
+    data_resultado = data_resultado.drop_duplicates(subset="correlativo_muestra")
     dict_protocolo = pd.Series(data_resultado.id_protocolo.values, index=data_resultado.correlativo_muestra).to_dict()
 
     group_by_correlative = data_resultado.groupby(by='correlativo_muestra')
