@@ -1,6 +1,6 @@
 ## Setup
 
-Install all in __[module_ai](https://github.com/astng/module_ai)__ repository first.
+Final scripts and obtained results with further details __[here](https://github.com/astng/module_ai)__.
 
 
 #### installing python packages trough pip
@@ -11,13 +11,6 @@ In the root path of this repository:
 	source venv/bin/activate
 	pip install -r requirements.txt
 	python setup.py develop
-
-go to module_ai project and in order to run the ai module API, run:
-
-	source venv/bin/activate
-	python api/main_api.py -c ./config/config_default.json
-
-note that these last two commands are assumed to be executed on root directory at module_ai repository.
 
 # API
 
